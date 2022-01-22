@@ -1,0 +1,39 @@
+#!/usr/bin/env zsh # vi: set expandtab ft=zsh tw=80 ts=2
+
+function hio() {
+  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	Usage: $0 [options] [(<level> <message>)...]
+
+	Output the given messages according to their specified level. Message level
+	can be any of debug, info, warning, error, success.
+	
+	Options:
+	  -n, --no-newline  Do not print a newline at the end of the messages.
+	----
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  [ $# -eq 0 ] && return
+
+  local tput=(tput setaf)
+  local -A colors=([debug]="`$tput 7`" [info]="`$tput 4`" [warn]="`$tput 3`" [error]="`$tput 1`" [success]="`$tput 2`" [reset]="`tput sgr0`")
+  [ ! -t 1 ] && colors=()
+
+  local msgToLog=""
+  for i in {1..$#level}; do
+    local curLvl="${level[$i]}" curMsg="${message[$i]}"
+    local msgToAdd="${colors[$curLvl]}${curMsg}${colors[reset]}"
+
+    [ ! -t 1 -a "${curLvl}" != 'info' ] && msgToAdd="${curLvl}: ${curMsg}"
+    [ -z "${msgToLog}" ] && msgToLog="${msgToAdd}" || msgToLog="${msgToLog} ${msgToAdd}"
+  done
+
+  [ ! -t 1 ] && printf '%s ' "`date +%H:%M:%S`"
+  printf '%s' "${msgToLog}"
+  [[ "${no_newline}" == 'false' ]] && printf '\n'
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+  hio "$@"
+fi
