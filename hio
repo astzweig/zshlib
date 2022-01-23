@@ -34,6 +34,6 @@ function hio() {
   [[ "${no_newline}" == 'false' ]] && printf '\n'
 }
 
-if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
   hio "$@"
 fi
