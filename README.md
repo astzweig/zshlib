@@ -17,8 +17,13 @@ in your script and you are ready to go
 
 ## What's included
 
-| name | description |
-| ---- | ----------- |
-| hio  | Highlighted output to command line. |
+| name | description | dependencies |
+| ---- | ----------- | ------------ |
+| hio  | Highlighted output to command line. | [`docopts`][docopts][^docopts] |
+
+[^docopts]: `docopts` with `-f, --function` option needed. See the
+  [Astzweig fork][astzweig-docopts] for example.
 
 [git-submodule]: https://git-scm.com/docs/git-submodule
+[docopts]: https://github.com/docopt/docopts
+[astzweig-docopts]: https://github.com/astzweig/docopts
