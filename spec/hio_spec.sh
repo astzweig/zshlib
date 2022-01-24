@@ -3,8 +3,6 @@
 % WARNMSG: 'This is a warning message'
 
 Describe 'hio'
-  Include './hio'
-
   It 'prints nothing when no argument is given'
     When call hio
     The output should eq ''

@@ -1,8 +1,6 @@
 % APPNAME: 'com.example.zshlib'
 
 Describe 'getPrefDir'
-  Include './getPrefDir'
-
   It 'prints usage when called without arguments'
     When call getPrefDir
     The output should eq ''
