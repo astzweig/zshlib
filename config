@@ -1,0 +1,47 @@
+#!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
+
+function config() {
+  typeset -T KEYPATH key
+  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	Usage:
+	  $0 setappname <appdomain>
+	  $0 write <value> <key> [<key>...]
+	  $0 read <key> [<key>...]
+
+	Write and read config values from and to a configuration file. setappname
+	derives the path to the configuration file for all subsequent read and write
+	calls. appdomain shall be in reverse DNS form. write writes the string value
+	to the keypath given by key.
+	----
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  if [ "${setappname}" = 'true' ]; then
+    _ZSHLIB_CONFIG_APPNAME="${appdomain}"
+    return 0
+  fi
+
+  local configfile="`getPrefDir "${_ZSHLIB_CONFIG_APPNAME}"`/${_ZSHLIB_CONFIG_APPNAME}.plist"
+  if [ "${write}" = 'true' ]; then
+    local item partialKeypath
+    for item in "${key[@]}"; do
+      partialKeypath="${partialKeypath}:${item}"
+      test "${item}" -eq "${item}" 2> /dev/null || continue
+      [ "${partialKeypath}" = ":${item}" ] && continue
+      /usr/libexec/PlistBuddy -c "Add ${partialKeypath} array" "${configfile}" > /dev/null 2>&1
+    done
+    /usr/libexec/PlistBuddy -c "Add ${KEYPATH} string ${value}" "${configfile}" > /dev/null 2>&1
+  fi
+
+  if [ "${read}" = 'true' ]; then
+    [ ! -f "${configfile}" ] && return 1
+    /usr/libexec/PlistBuddy -c "Print ${KEYPATH}" "${configfile}" 2> /dev/null
+  fi
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+  _ZSHLIB_CONFIG_APPNAME=''
+  config "$@"
+fi
