@@ -9,11 +9,31 @@ to your repository.
 # Run inside your project directory
 git submodule add https://github.com/astzweig/zshlib
 ```
-Afterwards just add that new directory to the beginning of your `PATH` variable
-in your script and you are ready to go
+
+### Using on the command line
+Just add the zshlib directory to the beginning of your `PATH` variable and you
+can call the commands from the command line.
 
 > **Caveat**: Remember that `sudo` does not inherit all environment variables.
 > To pass your modified `PATH` variable run `sudo --preserve-env=PATH`.
+
+### Using as a library
+Just source the specific commands that you want inside your script. Alternatively
+you can enable Zsh autoload:
+
+```zsh
+  # This will register all commands to autoload
+  FPATH="/path/to/zshlib:${FPATH}"
+  local funcNames=("${(@f)$(find ./zshlib -type f -perm +u=x | awk -F/ '{ print $NF }')}")
+  autoload -Uz "${funcNames[@]}"
+```
+Or if you want to autoload only specific commands:
+
+```zsh
+  # This will register only hio and getPrefDir to autoload
+  FPATH="/path/to/zshlib:${FPATH}"
+  autoload -Uz hio getPrefDir
+```
 
 ## What's included
 
