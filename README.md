@@ -17,9 +17,10 @@ in your script and you are ready to go
 
 ## What's included
 
-| name | description | dependencies |
-| ---- | ----------- | ------------ |
-| hio  | Highlighted output to command line. | [`docopts`][docopts][^docopts] |
+| name | description | dependencies | supported platforms |
+| ---- | ----------- | ------------ | ------------------- |
+| hio  | Highlighted output to command line. | [`docopts`][docopts][^docopts] | all |
+| getPrefDir | Get system specific preferences directory. | - | macOS, Linux, Windows Subsystem for Linux |
 
 [^docopts]: `docopts` with `-f, --function` option needed. See the
   [Astzweig fork][astzweig-docopts] for example.
