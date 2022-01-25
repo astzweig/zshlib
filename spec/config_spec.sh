@@ -6,7 +6,7 @@ config_does_not_exist() {
 }
 
 config_does_exist() {
-  test -f "${HOME}/Library/Preferences/${APPNAME}.plist"
+  test -f "${HOME}/Library/Preferences/${1:-${APPNAME}}.plist"
 }
 
 no_array_in_config() {
@@ -17,6 +17,12 @@ array_in_config() {
   grep 'array' "${HOME}/Library/Preferences/${APPNAME}.plist" > /dev/null
 }
 
+rmfiles() {
+  for file; do
+    [ -f "${file}" ] && rm "${file}";
+  done
+}
+
 Describe 'config'
   setup() { 
     config_does_not_exist
@@ -25,9 +31,7 @@ Describe 'config'
     config write "${KEYVALUE}" some existent key
   }
   cleanup() {
-    local file="${HOME}/Library/Preferences/${APPNAME}.plist"
-    [ -f "${file}" ] && rm "${file}"
-    return 0
+    rmfiles "${HOME}/Library/Preferences/${APPNAME}"*.plist
   }
   BeforeEach 'setup'
   AfterEach 'cleanup'
@@ -48,6 +52,13 @@ Describe 'config'
   It 'creates config on first write'
     When call config write myval mykey
     Assert config_does_exist
+    The output should eq ''
+    The status should be success
+  End
+
+  It 'takes app name from options -a'
+    When call config -a "${APPNAME}.second" write myval mykey
+    Assert config_does_exist "${APPNAME}.second"
     The output should eq ''
     The status should be success
   End

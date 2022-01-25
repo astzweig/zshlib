@@ -6,13 +6,18 @@ function config() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setappname <appdomain>
-	  $0 write <value> <key> [<key>...]
+	  $0 [options] write <value> <key> [<key>...]
 	  $0 read <key> [<key>...]
 
 	Write and read config values from and to a configuration file. setappname
 	derives the path to the configuration file for all subsequent read and write
 	calls. appdomain shall be in reverse DNS form. write writes the string value
 	to the keypath given by key.
+
+  Options:
+    -a APPNAME, --appname=APPNAME  Derive path to configuration file from
+                                   APPNAME instead of <appname> set via
+                                   setappname.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
@@ -23,7 +28,8 @@ function config() {
     return 0
   fi
 
-  local configfile="`getPrefDir "${_ZSHLIB_CONFIG_APPNAME}"`/${_ZSHLIB_CONFIG_APPNAME}.plist"
+  local appname="${appname:-${_ZSHLIB_CONFIG_APPNAME}}"
+  local configfile="`getPrefDir "${appname}"`/${appname}.plist"
   if [ "${write}" = 'true' ]; then
     local item partialKeypath
     for item in "${key[@]}"; do
