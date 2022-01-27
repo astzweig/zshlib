@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
+declare -gA _ZSHLIB_CONFIG_OPTIONS
 
 function config() {
   typeset -T KEYPATH key
@@ -24,11 +25,11 @@ function config() {
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
   if [ "${setappname}" = 'true' ]; then
-    _ZSHLIB_CONFIG_APPNAME="${appdomain}"
+    _ZSHLIB_CONFIG_OPTIONS+=('-a' "${appdomain}")
     return 0
   fi
 
-  local appname="${appname:-${_ZSHLIB_CONFIG_APPNAME}}"
+  local appname="${appname:-${_ZSHLIB_CONFIG_OPTIONS[-a]}}"
   local configfile="`getPrefDir "${appname}"`/${appname}.plist"
   if [ "${write}" = 'true' ]; then
     local item partialKeypath
@@ -48,6 +49,5 @@ function config() {
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
-  _ZSHLIB_CONFIG_APPNAME=''
   config "$@"
 fi
