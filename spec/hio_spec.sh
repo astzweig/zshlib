@@ -27,6 +27,16 @@ Describe 'hio'
     The status should be success
   End
 
+  It 'prints no newline at the end if -n option is given'
+    combined_hio() {
+      hio -n info "${INFOMSG}. "
+      hio -n info "${INFOMSG}"
+    }
+    When call combined_hio
+    The output should eq "${INFOMSG}. ${INFOMSG}"
+    The status should be success
+  End
+
   It 'Prefixes anything but info when output is not to terminal'
     When call hio warn "${WARNMSG}" debug "${DEBUGMSG}" info "${INFOMSG}"
     The output should match pattern "warn: ${WARNMSG} debug: ${DEBUGMSG} ${INFOMSG}"
