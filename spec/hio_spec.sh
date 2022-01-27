@@ -17,24 +17,19 @@ Describe 'hio'
 
   It 'prints the info message when given one'
     When call hio info "${INFOMSG}"
-    The output should match pattern "*${INFOMSG}"
+    The output should match pattern "${INFOMSG}"
     The status should be success
   End
 
   It 'prints different info messages when given'
     When call hio info "${INFOMSG}." info "${INFOMSG}"
-    The output should match pattern "*${INFOMSG}. ${INFOMSG}"
+    The output should match pattern "${INFOMSG}. ${INFOMSG}"
     The status should be success
-  End
-
-  It 'prints timestamp before message when output is not to terminal'
-    When call hio info "${INFOMSG}"
-    The output should match pattern "*:*:* ${INFOMSG}"
   End
 
   It 'Prefixes anything but info when output is not to terminal'
     When call hio warn "${WARNMSG}" debug "${DEBUGMSG}" info "${INFOMSG}"
-    The output should match pattern "*:*:* warn: ${WARNMSG} debug: ${DEBUGMSG} ${INFOMSG}"
+    The output should match pattern "warn: ${WARNMSG} debug: ${DEBUGMSG} ${INFOMSG}"
   End
 
   It 'prints help messagen when asked for'

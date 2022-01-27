@@ -30,7 +30,6 @@ function hio() {
     [ -z "${msgToLog}" ] && msgToLog="${msgToAdd}" || msgToLog="${msgToLog} ${msgToAdd}"
   done
 
-  [ ! -t 1 ] && printf '%s ' "`date +%H:%M:%S`"
   printf '%s' "${msgToLog}"
   [[ "${no_newline}" == 'false' ]] && printf '\n'
 }
