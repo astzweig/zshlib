@@ -31,7 +31,8 @@ Describe 'config'
     config write "${KEYVALUE}" some existent key
   }
   cleanup() {
-    rmfiles "${HOME}/Library/Preferences/${APPNAME}"*.plist
+    setopt nonomatch
+    rmfiles "${HOME}/Library/Preferences/${APPNAME}"*.plist || return 0
   }
   BeforeEach 'setup'
   AfterEach 'cleanup'
