@@ -17,13 +17,13 @@ Describe 'hio'
 
   It 'prints the info message when given one'
     When call hio info "${INFOMSG}"
-    The output should match pattern "${INFOMSG}"
+    The output should eq "${INFOMSG}"
     The status should be success
   End
 
   It 'prints different info messages when given'
     When call hio info "${INFOMSG}." info "${INFOMSG}"
-    The output should match pattern "${INFOMSG}. ${INFOMSG}"
+    The output should eq "${INFOMSG}. ${INFOMSG}"
     The status should be success
   End
 
@@ -39,7 +39,7 @@ Describe 'hio'
 
   It 'Prefixes anything but info when output is not to terminal'
     When call hio warn "${WARNMSG}" debug "${DEBUGMSG}" info "${INFOMSG}"
-    The output should match pattern "warn: ${WARNMSG} debug: ${DEBUGMSG} ${INFOMSG}"
+    The output should eq "warn: ${WARNMSG} debug: ${DEBUGMSG} ${INFOMSG}"
   End
 
   It 'prints help messagen when asked for'
