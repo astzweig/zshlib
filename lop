@@ -1,0 +1,105 @@
+#!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
+declare -gA _ZSHLIB_LOP_OPTIONS
+
+function _zshlib_lop_filter_messages_by_loglevel() {
+  local -A levelmap=([debug]=7 [info]=6 [success]=6 [notice]=5 [warn]=4 [warning]=4 [error]=3 [crit]=2 [critical]=2 [alert]=1 [emerg]=0 [emergency]=0 [panic]=0)
+  [ -z "${loglevel}" ] && return
+  test "${levelmap[${loglevel}]}" -ge "${levelmap[${curLvl}]}"
+}
+
+function _zshlib_lop_to_syslog() {
+  # Log a message to syslog
+  [ -n "${tagline}" ] && taglineoption=('-t' "${tagline}")
+  local -A levelmap=([success]=info [warning]=warn [critical]=crit [emergency]=emerg)
+
+  for i in {1..$#level}; do
+    local curLvl="${level[$i]}" curMsg="${message[$i]}"
+    _zshlib_lop_filter_messages_by_loglevel || continue
+    [ -n "${levelmap[${curLvl}]}" ] && curLvl="${levelmap[${curLvl}]}"
+    logger ${taglineoption} -p "${curLvl}" "${curMsg}"
+  done
+}
+
+function _zshlib_lop_prefix_time_and_tag() {
+  # Print time and a tag inside brackets ('[]') and in that order. Time only if
+  # output is not to stdout and tag only if provided.
+  [ ! -t 1 ] && local time="`date +%H:%M:%S`"
+  [ -z "${tagline}" -a -z "${time}" ] && return
+  local args
+  for varname in time tagline; do
+    [ -n "${(P)varname}" ] && args+=("${(P)varname}")
+  done
+  hio -n info "[${args}] "
+}
+
+function _zshlib_lop_to_stdout() {
+  # Log a message to stdout
+  local args=()
+  [ "${no_newline}" = "true" ] && args+=('-n')
+  for i in {1..$#level}; do
+    local curLvl="${level[$i]}" curMsg="${message[$i]}"
+    _zshlib_lop_filter_messages_by_loglevel || continue
+    args+=("${curLvl}" "${curMsg}")
+  done
+
+  if [ "${#args}" -gt 0 ]; then
+    _zshlib_lop_prefix_time_and_tag
+    hio "${args[@]}"
+  fi
+  return 0
+}
+
+function lop() {
+  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	Usage:
+    $0 setoutput [options] (tostdout|tosyslog|<filepath>)
+    $0 [options] [(<level> <message>)...]
+
+	In the first form set the output place for all subsequent calls. In the second
+  form output the given messages according to their specified level to the prior
+  defined output place or stdout. Message level can be any of debug, info,
+  notice, warn[ing], error, crit[ical], alert, emerg[ency]/panic and success.
+	
+	Options:
+    -t TAG, --tagline TAG       Prefix output with the given tag.
+    -l LEVEL, --loglevel LEVEL  Set the log level.
+    -f PATH, --filename PATH    Print to file instead of standard output.
+    -s, --syslog                Print to syslog instead of standard output. If
+                                s and f are provided, the messages are logged
+                                to syslog.
+	  -n, --no-newline            Do not print a newline at the end.
+	----
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  [ $# -eq 0 ] && return
+  if [ "${setoutput}" = 'true' ]; then
+    [ "${tostdout}" = 'true' ] && unset '_ZSHLIB_LOP_OPTIONS[-f]'
+    [ "${tosyslog}" = 'true' ] && _ZSHLIB_LOP_OPTIONS+=('-s' 'true')
+    [ -n "${filepath}" ] && _ZSHLIB_LOP_OPTIONS+=('-f' "${filepath}")
+    [ -n "${loglevel}" ] && _ZSHLIB_LOP_OPTIONS+=('-l' "${loglevel}")
+    return 0
+  fi
+
+  [ -n "${_ZSHLIB_LOP_OPTIONS[-l]}" ] && loglevel="${_ZSHLIB_LOP_OPTIONS[-l]}"
+  if [ "${syslog:-${_ZSHLIB_LOP_OPTIONS[-s]}}" = 'true' ]; then
+    _zshlib_lop_to_syslog
+  else
+    local output=/dev/stdout
+    [ -n "${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}" ] && output="${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}"
+    _zshlib_lop_to_stdout > "${output}"
+  fi
+  return 0
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+  _DIR="${0:A:h}"
+  whence hio > /dev/null || source "${_DIR}/hio"
+  lop "$@"
+fi
+
+if [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+  lop "$@"
+fi
