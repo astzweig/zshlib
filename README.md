@@ -41,7 +41,7 @@ Or if you want to autoload only specific commands:
 | name | description | dependencies | supported platforms |
 | ---- | ----------- | ------------ | ------------------- |
 | hio  | Highlighted output to command line. | [`docopts`][docopts][^docopts] | all |
-| lop | Log or print out message (highlighted if output goes to command line). | `hio`[^zshlib] | all |
+| lop | Log messages to syslog, file or print to command line with highlight. | `hio`[^zshlib] | all |
 | getPrefDir | Get system specific preferences directory. | - | macOS, Linux, Windows Subsystem for Linux |
 | config | Config file writer and reader. | `getPrefDir`[^zshlib], `PlistBuddy`[^plistbuddy] | macOS, Linux, Windows Subsystem for Linux |
 
