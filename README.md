@@ -12,7 +12,8 @@ git submodule add https://github.com/astzweig/zshlib
 
 ### Using on the command line
 Just add the zshlib directory to the beginning of your `PATH` variable and you
-can call the commands from the command line.
+can call the commands from the command line. Alternatively you can enter the
+whole path e.g. `/path/to/repo/hio --help`.
 
 > **Caveat**: Remember that `sudo` does not inherit all environment variables.
 > To pass your modified `PATH` variable run `sudo --preserve-env=PATH`.
