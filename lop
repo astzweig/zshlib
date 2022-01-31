@@ -53,21 +53,21 @@ function _zshlib_lop_to_stdout() {
 function lop() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
-    $0 setoutput [options] (tostdout|tosyslog|<filepath>)
-    $0 [options] [(<level> <message>)...]
-
+	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
+	  $0 [options] [(<level> <message>)...]
+	
 	In the first form set the output place for all subsequent calls. In the second
-  form output the given messages according to their specified level to the prior
-  defined output place or stdout. Message level can be any of debug, info,
-  notice, warn[ing], error, crit[ical], alert, emerg[ency]/panic and success.
+	form output the given messages according to their specified level to the prior
+	defined output place or stdout. Message level can be any of debug, info,
+	notice, warn[ing], error, crit[ical], alert, emerg[ency]/panic and success.
 	
 	Options:
-    -t TAG, --tagline TAG       Prefix output with the given tag.
-    -l LEVEL, --loglevel LEVEL  Set the log level.
-    -f PATH, --filename PATH    Print to file instead of standard output.
-    -s, --syslog                Print to syslog instead of standard output. If
-                                s and f are provided, the messages are logged
-                                to syslog.
+	  -t TAG, --tagline TAG       Prefix output with the given tag.
+	  -l LEVEL, --loglevel LEVEL  Set the log level.
+	  -f PATH, --filename PATH    Print to file instead of standard output.
+	  -s, --syslog                Print to syslog instead of standard output. If
+	                              s and f are provided, the messages are logged
+	                              to syslog.
 	  -n, --no-newline            Do not print a newline at the end.
 	----
 	$0 0.1.0
