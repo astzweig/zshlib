@@ -8,7 +8,7 @@ function config() {
 	Usage:
 	  $0 setappname <appdomain>
 	  $0 [options] write <value> <key> [<key>...]
-	  $0 read <key> [<key>...]
+	  $0 [options] read <key> [<key>...]
 	
 	Write and read config values from and to a configuration file. setappname
 	derives the path to the configuration file for all subsequent read and write

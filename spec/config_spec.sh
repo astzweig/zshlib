@@ -57,10 +57,18 @@ Describe 'config'
     The status should be success
   End
 
-  It 'takes app name from options -a'
+  It 'takes app name from options -a for writing'
     When call config -a "${APPNAME}.second" write myval mykey
     Assert config_does_exist "${APPNAME}.second"
     The output should eq ''
+    The status should be success
+  End
+
+  It 'takes app name from options -a for reading'
+    config -a "${APPNAME}.second" write myval mykey
+    When call config -a "${APPNAME}.second" read mykey
+    Assert config_does_exist "${APPNAME}.second"
+    The output should eq 'myval'
     The status should be success
   End
 
