@@ -41,10 +41,10 @@ Or if you want to autoload only specific commands:
 | name | description | dependencies | supported platforms |
 | ---- | ----------- | ------------ | ------------------- |
 | hio  | Highlighted output to command line. | [`docopts`][docopts][^docopts] | all |
-| lop | Log messages to syslog, file or print to command line with highlight. | `hio`[^zshlib] | all |
-| askUser | Ask user for input. Supports questions, password, selections or confirmations. | `hio`[^zshlib] | all |
-| getPrefDir | Get system specific preferences directory. | - | macOS, Linux, Windows Subsystem for Linux |
-| config | Config file writer and reader. | `getPrefDir`[^zshlib], `PlistBuddy`[^plistbuddy] | macOS, Linux, Windows Subsystem for Linux |
+| lop | Log messages to syslog, file or print to command line with highlight. | `hio`[^zshlib], [`docopts`][docopts][^docopts] | all |
+| askUser | Ask user for input. Supports questions, password, selections or confirmations. | `hio`[^zshlib], [`docopts`][docopts][^docopts] | all |
+| getPrefDir | Get system specific preferences directory. | [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
+| config | Config file writer and reader. | `getPrefDir`[^zshlib], `PlistBuddy`[^plistbuddy], [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
 
 [^zshlib]: A command of Zsh Lib (this library).
 [^docopts]: `docopts` with `-f, --function` option needed. See the
