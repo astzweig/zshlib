@@ -56,40 +56,40 @@ function _zshlib_askUser_choose() {
 
 function askUser() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
-  Usage:
-    $0 info [-v VALIDATOR] [-d DEFAULT] [-p] <prompt>
-    $0 confirm [-y|-n] <prompt>
-    $0 choose [-v VALIDATOR] <prompt>
+	Usage:
+	  $0 info [-v VALIDATOR] [-d DEFAULT] [-p] <prompt>
+	  $0 confirm [-y|-n] <prompt>
+	  $0 choose [-v VALIDATOR] <prompt>
 	
 	Ask user for input showing the given <prompt>. The input type can be modified
 	using the options. All input is stored in \$REPLY for scalars and \$reply for
 	arrays.
-  
-  Commands:
+	
+	Commands:
 	  info     Ask the user a question with an undefined range of answers. If a
-             default value is given, use that if no input is made. If a
-             validator is given, ask again if the value does not pass
-             validation.
+	           default value is given, use that if no input is made. If a
+	           validator is given, ask again if the value does not pass
+	           validation.
 	  confirm  Ask the user a yes/no question and return 0 if the input was y or
-             Y. If no input is given, ask again. If the y option is given, yes
-             will be the default value if no input is made, the same is true
-             for the n option, where no is the default value if no input is
-             made.
-    choose   Let the user choose from a list of possible choices (given by an
-             outer array named 'choices'). If validator is given other input
-             but empty input will be accepted too if they pass validation.
-
-  Options:
-    -d DEFAULT, --default DEFAULT        A default value
-    -p, --password                       Do not repeat/print input on stdout.
-    -v VALIDATOR, --validator VALIDATOR  The name of a function or command to
-                                         use as an input validator. It receives
-                                         the user input as the first argument
-                                         and shall return 0 if the validation
-                                         passes or any number greater than zero
-                                         if the validation failed.
-    -y                                   Set yes as default value.
-    -n                                   Set no as default value.
+	           Y. If no input is given, ask again. If the y option is given, yes
+	           will be the default value if no input is made, the same is true
+	           for the n option, where no is the default value if no input is
+	           made.
+	  choose   Let the user choose from a list of possible choices (given by an
+	           outer array named 'choices'). If validator is given other input
+	           but empty input will be accepted too if they pass validation.
+	
+	Options:
+	  -d DEFAULT, --default DEFAULT        A default value
+	  -p, --password                       Do not repeat/print input on stdout.
+	  -v VALIDATOR, --validator VALIDATOR  The name of a function or command to
+	                                       use as an input validator. It receives
+	                                       the user input as the first argument
+	                                       and shall return 0 if the validation
+	                                       passes or any number greater than zero
+	                                       if the validation failed.
+	  -y                                   Set yes as default value.
+	  -n                                   Set no as default value.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
