@@ -53,6 +53,10 @@ Or if you want to autoload only specific commands:
   Apple does not provide any documentation besides the man page and the programs
   `--help` output.
 
+## Usage
+Run any command with the `--help` option to read about its usage. e.g.
+`/path/to/zshlib/hio --help`.
+
 [git-submodule]: https://git-scm.com/docs/git-submodule
 [docopts]: https://github.com/docopt/docopts
 [astzweig-docopts]: https://github.com/astzweig/docopts
