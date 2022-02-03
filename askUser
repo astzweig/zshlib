@@ -1,0 +1,116 @@
+#!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
+
+function _zshlib_askUser_info() {
+  local passwordOption=''
+  [ "${password}" = true ] && passwordOption='-s'
+  while true; do
+    hio -n info "${prompt} "
+    [ -n "${default}" ] && hio -n debug "[default: ${default}] "
+    read -u 0 ${passwordOption}
+    [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
+    if [ -n "${REPLY}" ]; then
+      [ -z "${validator}" ] || "${validator}" "${REPLY}" && break
+    fi
+  done
+}
+
+function _zshlib_askUser_confirm() {
+  local answerChoices=()
+  [ "${y}" = true ] && answerChoices+=(Y) || answerChoices+=(y)
+  [ "${n}" = true ] && answerChoices+=(N) || answerChoices+=(n)
+  while true; do
+    hio -n info "${prompt} [${(j./.)answerChoices}] "
+    read -u 0 -k
+    REPLY="${REPLY//[^A-Za-z]/}"
+    if [ -n "${REPLY}" ]; then
+      [[ "${REPLY}" =~ [Yy] ]] && return
+      [[ "${REPLY}" =~ [Nn] ]] && return 1
+      hio error 'Unrecognized input. Please confirm with y or n.' >&2
+    elif [ "${y}" = true ]; then
+      return
+    elif [ "${n}" = true ]; then
+      return 1
+    else
+      hio error 'No input made. Please confirm with y or n.' >&2
+    fi
+  done
+}
+
+function _zshlib_askUser_choose() {
+  local choice
+  if [ "${(t)choices}" != 'array' ]; then
+    hio error 'choices must be an array defined outside.' >&2
+    return 64
+  fi
+  [ "${#choices}" -lt 1 ] && return
+  hio info "${prompt}${defaulthint}"
+  select choice in "${choices[@]}"; do
+    if [ -n "${choice}" ]; then
+      REPLY="${choice}"
+      break
+    fi
+    [ -n "${validator}" ] && "${validator}" "${REPLY}" && break
+  done < /dev/stdin
+}
+
+function askUser() {
+  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+  Usage:
+    $0 info [-v VALIDATOR] [-d DEFAULT] [-p] <prompt>
+    $0 confirm [-y|-n] <prompt>
+    $0 choose [-v VALIDATOR] <prompt>
+	
+	Ask user for input showing the given <prompt>. The input type can be modified
+	using the options. All input is stored in \$REPLY for scalars and \$reply for
+	arrays.
+  
+  Commands:
+	  info     Ask the user a question with an undefined range of answers. If a
+             default value is given, use that if no input is made. If a
+             validator is given, ask again if the value does not pass
+             validation.
+	  confirm  Ask the user a yes/no question and return 0 if the input was y or
+             Y. If no input is given, ask again. If the y option is given, yes
+             will be the default value if no input is made, the same is true
+             for the n option, where no is the default value if no input is
+             made.
+    choose   Let the user choose from a list of possible choices (given by an
+             outer array named 'choices'). If validator is given other input
+             but empty input will be accepted too if they pass validation.
+
+  Options:
+    -d DEFAULT, --default DEFAULT        A default value
+    -p, --password                       Do not repeat/print input on stdout.
+    -v VALIDATOR, --validator VALIDATOR  The name of a function or command to
+                                         use as an input validator. It receives
+                                         the user input as the first argument
+                                         and shall return 0 if the validation
+                                         passes or any number greater than zero
+                                         if the validation failed.
+    -y                                   Set yes as default value.
+    -n                                   Set no as default value.
+	----
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  REPLY=
+  if [ "${info}" = true ]; then
+    _zshlib_askUser_info
+  elif [ "${confirm}" = true ]; then
+    _zshlib_askUser_confirm
+  elif [ "${choose}" = true ]; then
+    _zshlib_askUser_choose
+  fi
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+  _DIR="${0:A:h}"
+  whence hio > /dev/null || source "${_DIR}/hio"
+  askUser "$@"
+fi
+
+if [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+  askUser "$@"
+fi
