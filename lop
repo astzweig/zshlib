@@ -36,6 +36,7 @@ function _zshlib_lop_prefix_time_and_tag() {
 function _zshlib_lop_to_stdout() {
   # Log a message to stdout
   local args=()
+  [ ${#level} -lt 1 ] && return
   [ "${no_newline}" = "true" ] && args+=('-n')
   for i in {1..$#level}; do
     local curLvl="${level[$i]}" curMsg="${message[$i]}"

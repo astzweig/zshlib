@@ -8,6 +8,12 @@ Describe 'lop'
   The status should be success
  End
 
+ It 'does do nothing if called with only n option'
+  When call lop -n
+  The output should eq ''
+  The status should be success
+ End
+
  It 'does print the tagline'
   When call lop -t "${TAG}" info "${MSG}"
   The output should match pattern "*${TAG}] ${MSG}"
