@@ -44,7 +44,7 @@ function _zshlib_lop_to_stdout() {
     args+=("${curLvl}" "${curMsg}")
   done
 
-  if [ "${#args}" -gt 0 ]; then
+  if [ "${#args}" -gt 1 ]; then
     _zshlib_lop_prefix_time_and_tag
     hio "${args[@]}"
   fi

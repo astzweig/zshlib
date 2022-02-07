@@ -64,6 +64,13 @@ Describe 'lop'
   The status should be success
  End
 
+ It 'prints nothing if everything is filtered and n option is given'
+  lop setoutput -l warn tostdout
+  When call lop -n debug "${MSG}"
+  The output should eq ''
+  The status should be success
+ End
+
  It 'can reset output in advance'
   TMPFILE="`mktemp`"
   lop setoutput "${TMPFILE}"
