@@ -1,0 +1,62 @@
+#!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
+
+function _zshlib_abbreviatePaths_extendName() {
+  local i
+  local idx="$1" collisionName="${2}" start=1
+  local parts=(${(s./.)filepath[${idx}]})
+
+  if [ -n "${collisionName}" ]; then
+    local collisionParts=(${(s./.)collisionName})
+    [ ${#collisionParts} -ge ${#parts} ] && return
+    ((start += ${#collisionParts}))
+  fi
+
+  for ((i = ${start}; i <= ${#parts}; i++)) do
+    name=${(j./.)parts: -${i}}
+    [ -z "${knownPaths[${name}]}" ] && break
+    _zshlib_abbreviatePaths_extendName "${knownPaths[${name}]}" "${name}"
+  done
+
+  resultNames+=([${idx}]="${name}")
+}
+
+function abbreviatePaths() {
+  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	Usage: $0 [<filepath>...]
+	
+	Truncate the passed paths so that they are pairwise distinct. Start with the
+	file name and gradually add the file extension and path elements until the
+	names are different. If no argument is given will read filepaths from stdin.
+	----
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  if [ "$#" -eq 0 ]; then
+    while read -u 0; do
+      [ -z "${REPLY}" ] && break
+      filepath+=("${REPLY}")
+    done
+  fi
+  local fileno name resultNames=()
+  local -A knownPaths=()
+
+  for ((fileno = 1; fileno <= ${#filepath}; fileno++)) do
+    _zshlib_abbreviatePaths_extendName "${fileno}"
+    knownPaths+=("${name}" "${fileno}")
+  done
+  for name in "${resultNames[@]}"; do
+    hio info "${name}"
+  done
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+  _DIR="${0:A:h}"
+  whence hio > /dev/null || source "${_DIR}/hio"
+  abbreviatePaths "$@"
+fi
+
+if [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+  abbreviatePaths "$@"
+fi

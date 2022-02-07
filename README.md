@@ -46,6 +46,7 @@ Or if you want to autoload only specific commands:
 | askUser | Ask user for input. Supports questions, password, selections or confirmations. | `hio`[^zshlib], [`docopts`][docopts][^docopts] | all |
 | getPrefDir | Get system specific preferences directory. | [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
 | config | Config file writer and reader. | `getPrefDir`[^zshlib], `PlistBuddy`[^plistbuddy], [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
+| abbreviatePaths | Truncate the passed paths so that they are minimal in length and pairwise distinct. Useful to save the user long path specifications. | `hio`[^zshlib], [`docopts`][docopts][^docopts] | all |
 
 [^zshlib]: A command of Zsh Lib (this library).
 [^docopts]: `docopts` with `-f, --function` option needed. See the
