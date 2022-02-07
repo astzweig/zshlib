@@ -6,7 +6,7 @@ function hio() {
 	Usage: $0 [options] [(<level> <message>)...]
 
 	Output the given messages according to their specified level. Message level
-	can be any of debug, info, warning, error, success.
+	can be any of debug, info, section, warn[ing], error success.
 	
 	Options:
 	  -n, --no-newline  Do not print a newline at the end of the messages.
@@ -18,7 +18,7 @@ function hio() {
   [ $# -eq 0 ] && return
 
   local tput=(tput setaf)
-  local -A colors=([debug]="`$tput 7`" [info]="`$tput 4`" [warn]="`$tput 3`" [error]="`$tput 1`" [success]="`$tput 2`" [reset]="`tput sgr0`")
+  local -A colors=([debug]="`$tput 7`" [info]="" [section]="`$tput 4`" [warn]="`$tput 3`" [warning]="`$tput 3`" [error]="`$tput 1`" [success]="`$tput 2`" [reset]="`tput sgr0`")
   [ ! -t 1 ] && colors=()
 
   local msgToLog=""

@@ -3,7 +3,7 @@
 declare -gA _ZSHLIB_LOP_OPTIONS
 
 function _zshlib_lop_filter_messages_by_loglevel() {
-  local -A levelmap=([debug]=7 [info]=6 [success]=6 [notice]=5 [warn]=4 [warning]=4 [error]=3 [crit]=2 [critical]=2 [alert]=1 [emerg]=0 [emergency]=0 [panic]=0)
+  local -A levelmap=([debug]=7 [info]=6 [section]=6 [subsection]=6 [success]=6 [notice]=5 [warn]=4 [warning]=4 [error]=3 [crit]=2 [critical]=2 [alert]=1 [emerg]=0 [emergency]=0 [panic]=0)
   [ -z "${loglevel}" ] && return
   test "${levelmap[${loglevel}]}" -ge "${levelmap[${curLvl}]}"
 }
@@ -11,7 +11,7 @@ function _zshlib_lop_filter_messages_by_loglevel() {
 function _zshlib_lop_to_syslog() {
   # Log a message to syslog
   [ -n "${tagline}" ] && taglineoption=('-t' "${tagline}")
-  local -A levelmap=([success]=info [warning]=warn [critical]=crit [emergency]=emerg)
+  local -A levelmap=([success]=info [section]=info [subsection]=info [warning]=warn [critical]=crit [emergency]=emerg)
 
   for i in {1..$#level}; do
     local curLvl="${level[$i]}" curMsg="${message[$i]}"
