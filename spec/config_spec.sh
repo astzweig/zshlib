@@ -32,6 +32,7 @@ Describe 'config'
   }
   cleanup() {
     setopt nonomatch
+    [ -f "${TMPFILE}" ] && rm "${TMPFILE}"
     rmfiles "${HOME}/Library/Preferences/${APPNAME}"*.plist || return 0
   }
   BeforeEach 'setup'
@@ -69,6 +70,34 @@ Describe 'config'
     When call config -a "${APPNAME}.second" read mykey
     Assert config_does_exist "${APPNAME}.second"
     The output should eq 'myval'
+    The status should be success
+  End
+
+  It 'takes config path from option -c for writing'
+    TMPFILE="`mktemp`"
+    When call config -c "${TMPFILE}" write myval mykey
+    The path "${TMPFILE}" should be a file
+    The path "${TMPFILE}" should not be empty file
+    The output should eq ''
+    The status should be success
+  End
+
+  It 'can set configfile in advance'
+    TMPFILE="`mktemp`"
+    config setconfigfile "${TMPFILE}"
+    When call config write myval mykey
+    The path "${TMPFILE}" should be a file
+    The path "${TMPFILE}" should not be empty file
+    The output should eq ''
+    The status should be success
+  End
+
+  It 'handles empty files for writing'
+    TMPFILE="`mktemp`"
+    When call config -c "${TMPFILE}" write myval mykey
+    The path "${TMPFILE}" should be a file
+    The path "${TMPFILE}" should not be empty file
+    The output should eq ''
     The status should be success
   End
 

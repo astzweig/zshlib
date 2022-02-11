@@ -7,6 +7,7 @@ function config() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setappname <appdomain>
+	  $0 setconfigfile <filepath>
 	  $0 [options] write <value> <key> [<key>...]
 	  $0 [options] read <key> [<key>...]
 	
@@ -19,6 +20,8 @@ function config() {
 	  -a APPNAME, --appname=APPNAME  Derive path to configuration file from
 	                                 APPNAME instead of <appname> set via
 	                                 setappname.
+	  -c PATH, --configfile=PATH     Use PATH as path to configuration file
+	                                 instead of deriving a path.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
@@ -29,9 +32,16 @@ function config() {
     return 0
   fi
 
+  if [ "${setconfigfile}" = 'true' ]; then
+    _ZSHLIB_CONFIG_OPTIONS+=('-c' "${filepath}")
+    return 0
+  fi
+
   local appname="${appname:-${_ZSHLIB_CONFIG_OPTIONS[-a]}}"
-  local configfile="`getPrefDir "${appname}"`/${appname}.plist"
+  configfile="${configfile:-${_ZSHLIB_CONFIG_OPTIONS[-c]}}"
+  [[ -n ${configfile} ]] || configfile="`getPrefDir "${appname}"`/${appname}.plist"
   if [ "${write}" = 'true' ]; then
+    [ -f "${configfile}" -a ! -s "${configfile}" ] && rm "${configfile}"
     local item partialKeypath
     for item in "${key[@]}"; do
       partialKeypath="${partialKeypath}:${item}"
