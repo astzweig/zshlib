@@ -37,24 +37,33 @@ function config() {
     return 0
   fi
 
-  local appname="${appname:-${_ZSHLIB_CONFIG_OPTIONS[-a]}}"
+  local pbuddy=/usr/libexec/PlistBuddy
+  appname="${appname:-${_ZSHLIB_CONFIG_OPTIONS[-a]}}"
   configfile="${configfile:-${_ZSHLIB_CONFIG_OPTIONS[-c]}}"
+  [ -z "${configfile}" -a -z "${appname}" ] && return 10
   [[ -n ${configfile} ]] || configfile="`getPrefDir "${appname}"`/${appname}.plist"
+
   if [ "${write}" = 'true' ]; then
-    [ -f "${configfile}" -a ! -s "${configfile}" ] && rm "${configfile}"
+    local clearCmd=("${pbuddy}" -c 'Clear dict' "${configfile}")
+    [ ! -f "${configfile}" ] && ${clearCmd} > /dev/null
+    if ! ${pbuddy} -c 'Print' "${configfile}" >&! /dev/null; then
+      rm "${configfile}"
+      ${clearCmd} > /dev/null
+    fi
     local item partialKeypath
     for item in "${key[@]}"; do
       partialKeypath="${partialKeypath}:${item}"
       test "${item}" -eq "${item}" 2> /dev/null || continue
       [ "${partialKeypath}" = ":${item}" ] && continue
-      /usr/libexec/PlistBuddy -c "Add ${partialKeypath} array" "${configfile}" > /dev/null 2>&1
+      ${pbuddy} -c "Add ${partialKeypath} array" "${configfile}"
     done
-    /usr/libexec/PlistBuddy -c "Add ${KEYPATH} string ${value}" "${configfile}" > /dev/null 2>&1
+    ${pbuddy} -c "Add ${KEYPATH} string ${value}" "${configfile}"
   fi
 
   if [ "${read}" = 'true' ]; then
-    [ ! -f "${configfile}" ] && return 1
-    /usr/libexec/PlistBuddy -c "Print ${KEYPATH}" "${configfile}" 2> /dev/null
+    [ ! -s "${configfile}" ] && return 0
+    ${pbuddy} -c "Print" "${configfile}" 2> /dev/null 1>&2 || return 11
+    ${pbuddy} -c "Print ${KEYPATH}" "${configfile}" 2> /dev/null
   fi
 }
 
