@@ -39,7 +39,7 @@ function _zshlib_askUser_confirm() {
 
 function _zshlib_askUser_choose() {
   local choice
-  if [ "${(t)choices}" != 'array' ]; then
+  if [[ "${(t)choices}" != array* ]]; then
     hio error 'choices must be an array defined outside.' >&2
     return 64
   fi

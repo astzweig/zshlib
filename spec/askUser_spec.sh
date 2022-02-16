@@ -109,6 +109,15 @@ Describe 'askUser choose'
     The status should eq 64
   End
 
+  It 'accepts local choices array'
+    local choices=()
+    When call askUser choose "${QUESTION}"
+    The output should eq ''
+    The error should eq ''
+    The variable REPLY should eq ''
+    The status should eq 0
+  End
+
   It 'does nothing if choices is empty'
     choices=()
     When call askUser choose "${QUESTION}"
