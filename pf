@@ -1,0 +1,35 @@
+#!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
+
+function pf() {
+  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	Usage: $0 [options] [--] [<args>...]
+	
+	Convenience function to combine print and tput. Print args to stdout using
+	print prefixed with the given tput commands. All passed args will be passed
+	through to print. All passed commands will be passed through to tput.
+	
+	Options:
+	  -c CMD, --commands CMD  A comma separated list of 'tput' commands. Any
+	                         command that is only an integer between 0 and 255 will
+	                         be considered a setaf tput command.
+	  -r, --reset            Output a 'tput sgr0' after the given strings.
+	----
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  local cmd
+  if [ -t 1 ]; then
+    for cmd in ${(s.,.)commands}; do
+      test $cmd -eq $cmd -a $cmd -le 255 -a $cmd -ge 0 2> /dev/null && tput setaf $cmd || tput $cmd;
+    done
+  fi
+  print "${args[@]}"
+  [ -t 1 -a "$reset" = true ] && tput sgr0
+  return 0
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+  pf "$@"
+fi
