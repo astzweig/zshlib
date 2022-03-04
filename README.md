@@ -49,6 +49,7 @@ Or if you want to autoload only specific commands:
 | getPrefDir | Get system specific preferences directory. | [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
 | config | Config file writer and reader. | `getPrefDir`[^zshlib], `PlistBuddy`[^plistbuddy], [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
 | abbreviatePaths | Truncate the passed paths so that they are minimal in length and pairwise distinct. Useful to save the user long path specifications. | `hio`[^zshlib], [`docopts`][docopts][^docopts] | all |
+| isTerminalBackgroundDark | Queries the terminal for its background color and returns zero if the color is rather dark or 1 otherwise. If the output is not connected to a terminal, code 10 will be returned. | - | all |
 
 
 [^zshlib]: A command of Zsh Lib (this library).
