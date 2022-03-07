@@ -138,7 +138,7 @@ function _zshlib_hio_showExamples() {
   hio body 'Remaining steps are (body)'
   hio body:li 'Setting dark or bright colors (body:li)'
   hio body:li 'Generating follow-up colors for expl modifier (body:li)'
-  hio body:note 'You can generate your own color schemes by overwritting _zshlib_hio_defineStyle.'
+  hio body:note 'You can generate your own color schemes using zsh/zstyle. (body:note)'
   hio body:quest -a Y/n 'Shall we continue? (body:quest)'
   hio body:success 'Colors set. (body:success)'
   hio h2 '\nApplying option state change (h2)'
@@ -147,9 +147,9 @@ function _zshlib_hio_showExamples() {
   hio body:warn 'Failed to apply all option state changes. (body:warn)'
   hio body:error 'Exemplary error occurred. (body:error)'
   hio h1 '\nProcessing Output (h1)'
-  hio body:done 'Applying colors to different message parts.'
-  hio body:success 'All messages processed'
-  hio body:active 'Printing example'
+  hio body:done 'Applying colors to different message parts. (body:done)'
+  hio body:success 'All messages processed (body:success)'
+  hio body:active 'Printing example (body:active)'
 }
 
 function hio() {
