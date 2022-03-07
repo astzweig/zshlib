@@ -15,17 +15,69 @@ function _zshlib_hio_getModifier() {
 }
 
 function _zshlib_hio_defineStyle() {
+  zmodload zsh/zutil
+  local zstylePrefix=':zshlib:hio'
   local -A styles=() subStyles=()
-  if isTerminalBackgroundDark; then
-    styles=([title]=bold,smul [h1]=bold,130 [h2]=255 [body]=8)
-    subStyles=([title]=239 [h1]=125 [h2]=239 [body]=234)
-    modifierStyles=(sub "${subStyles[$type]}" add 239 warn 202 quest 180 error 9 success 70 expl 234 failure 9 done 70 note 27 active 255)
-  else
-    styles=([title]=bold,smul [h1]=bold,130 [h2]=25 [body]=235)
-    subStyles=([title]=239 [h1]=125 [h2]=75 [body]=245)
-    modifierStyles=(sub "${subStyles[$type]}" add 239 warn 202 quest bold,166 error 9 success 70 expl 245 failure 9 done 70 note 27 active 0)
-  fi
-  style=${styles[$type]}
+  local -A defaultStyles=(
+    'type:dark:title' bold,smul
+    'type:dark:h1' bold,130
+    'type:dark:h2' 255
+    'type:dark:body' 8
+
+    'type:dark:title:sub' 239
+    'type:dark:h1:sub' 125
+    'type:dark:h2:sub' 239
+    'type:dark:body:sub' 234
+
+    'mod:dark:sub' 239
+    'mod:dark:add' 239
+    'mod:dark:warn' 202
+    'mod:dark:quest' 180
+    'mod:dark:error' 9
+    'mod:dark:success' 70
+    'mod:dark:expl' 234
+    'mod:dark:failure' 9
+    'mod:dark:done' 70
+    'mod:dark:note' 27
+    'mod:dark:active' 255
+
+    'type:light:title' bold,smul
+    'type:light:h1' bold,130
+    'type:light:h2' 25
+    'type:light:body' 235
+
+    'type:light:title:sub' 239
+    'type:light:h1:sub' 125
+    'type:light:h2:sub' 75
+    'type:light:body:sub' 245
+
+    'mod:light:sub' 239
+    'mod:light:add' 239
+    'mod:light:warn' 202
+    'mod:light:quest' bold,166
+    'mod:light:error' 9
+    'mod:light:success' 70
+    'mod:light:expl' 245
+    'mod:light:failure' 9
+    'mod:light:done' 70
+    'mod:light:note' 27
+    'mod:light:active' 0
+)
+
+  local lightness=light key value
+  isTerminalBackgroundDark && lightness=dark
+
+  for key value in ${(kv)defaultStyles}; do
+    [[ "${key}" = mod:${lightness}:* || "${key}" = type:${lightness}:$type* ]] || continue
+
+    zstyle -t "${zstylePrefix}:$key" color "$value"
+    [ $? -eq 1 ] && zstyle -s "${zstylePrefix}:$key" color value
+    [[ "$key" = "type:${lightness}:${type}"* ]] && styles+=(${key##*:} $value)
+    [[ "$key" = "mod:${lightness}:"* ]] && modifierStyles+=(${key##*:} $value)
+  done
+  style="${styles[$type]}"
+  modifierStyles+=(sub "${styles[sub]}")
+
   [ -n "${previousModifierStyle}" ] && { modifierStyles+=(expl ${previousModifierStyle}) previousModifierStyle= }
 }
 
