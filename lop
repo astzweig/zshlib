@@ -50,17 +50,9 @@ function _zshlib_lop_to_stdout() {
   return 0
 }
 
-function _zshlib_lop_fillLogLevelOpts() {
-  local i=1 loglevel=
-  for ((i=1; i <= ${#loglevels}; i++)); do
-    loglevel=${loglevels[$i]}
-    loglevelopts+=("`printf '  %-27s %-38s %s' "-${loglevel[1]} MSG, --${loglevel} MSG" "Add message with ${loglevel} level. Prio:" $i`")
-  done
-}
-
 function lop() {
   local loglevelopts=() loglevels=(debug info notice warning error critical alert panic)
-  _zshlib_lop_fillLogLevelOpts
+  printf -v loglevelopts '  -%1$c MSG, --%1$s MSG%1$14s is used as the message level.' "${loglevels[@]}"
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
@@ -71,7 +63,7 @@ function lop() {
 	loglevel option. Default output is to stdout using hio.
 	
 	Options:
-	${(pj.\n.)loglevelopts}
+	${(F)loglevelopts}
 	  -t TAG, --tagline TAG       Prefix output with the given tag.
 	  -y TYPE, --type TYPE        Message type if printed to stdout using hio [default: body].
 	  -l LEVEL, --loglevel LEVEL  Set the log level. All leveles below will be filtered out.
