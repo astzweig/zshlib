@@ -12,7 +12,7 @@ Describe 'askUser confirm'
   It 'asks user for confirmation'
     Data 'y'
     When call askUser confirm "${QUESTION}"
-    The output should eq "${QUESTION} [y/n] "
+    The output should eq "➔ ${QUESTION} [y/n] "
     The error should eq ''
     The variable REPLY should eq 'y'
   End
@@ -23,8 +23,8 @@ Describe 'askUser confirm'
       #|y
     End
     When call askUser confirm "${QUESTION}"
-    The output should eq "${QUESTION} [y/n] ${QUESTION} [y/n] "
-    The error should eq 'error: No input made. Please confirm with y or n.'
+    The output should eq "➔ ${QUESTION} [y/n] ➔ ${QUESTION} [y/n] "
+    The error should eq '☠ No input made. Please confirm with y or n.'
     The variable REPLY should eq 'y'
     The status should eq 0
   End
@@ -34,7 +34,7 @@ Describe 'askUser confirm'
       #|y
     End
     When call askUser confirm -y "${QUESTION}"
-    The output should eq "${QUESTION} [Y/n] "
+    The output should eq "➔ ${QUESTION} [Y/n] "
     The variable REPLY should eq 'y'
     The status should eq 0
   End
@@ -44,7 +44,7 @@ Describe 'askUser confirm'
       #|y
     End
     When call askUser confirm -n "${QUESTION}"
-    The output should eq "${QUESTION} [y/N] "
+    The output should eq "➔ ${QUESTION} [y/N] "
     The variable REPLY should eq 'y'
     The status should eq 0
   End
@@ -61,7 +61,7 @@ Describe 'askUser confirm'
       #|
     End
     When call askUser confirm -y "${QUESTION}"
-    The output should eq "${QUESTION} [Y/n] "
+    The output should eq "➔ ${QUESTION} [Y/n] "
     The variable REPLY should eq ''
     The status should eq 0
   End
@@ -71,7 +71,7 @@ Describe 'askUser confirm'
       #|
     End
     When call askUser confirm -n "${QUESTION}"
-    The output should eq "${QUESTION} [y/N] "
+    The output should eq "➔ ${QUESTION} [y/N] "
     The variable REPLY should eq ''
     The status should eq 1
   End
@@ -81,8 +81,8 @@ Describe 'askUser confirm'
       #|sy
     End
     When call askUser confirm "${QUESTION}"
-    The output should eq "${QUESTION} [y/n] ${QUESTION} [y/n] "
-    The error should eq 'error: Unrecognized input. Please confirm with y or n.'
+    The output should eq "➔ ${QUESTION} [y/n] ➔ ${QUESTION} [y/n] "
+    The error should eq '☠ Unrecognized input. Please confirm with y or n.'
     The variable REPLY should eq 'y'
     The status should eq 0
   End
@@ -92,7 +92,7 @@ Describe 'askUser confirm'
       #|n
     End
     When call askUser confirm "${QUESTION}"
-    The output should eq "${QUESTION} [y/n] "
+    The output should eq "➔ ${QUESTION} [y/n] "
     The error should eq ''
     The variable REPLY should eq 'n'
     The status should eq 1
@@ -104,7 +104,7 @@ Describe 'askUser choose'
   It 'returns 64 if choices array does not exist'
     When call askUser choose "${QUESTION}"
     The output should eq ''
-    The error should eq 'error: choices must be an array defined outside.'
+    The error should eq '☠ choices must be an array defined outside.'
     The variable REPLY should eq ''
     The status should eq 64
   End
@@ -134,7 +134,7 @@ Describe 'askUser choose'
       #|1
     End
     When call askUser choose "${QUESTION}"
-    The output should eq "${QUESTION}"
+    The output should eq "➔ ${QUESTION} "
     The error should match pattern '1)*1)*' 
     The variable REPLY should eq 'blue'
     The status should eq 0
@@ -148,7 +148,7 @@ Describe 'askUser choose'
       #|1
     End
     When call askUser choose "${QUESTION}"
-    The output should eq "${QUESTION}"
+    The output should eq "➔ ${QUESTION} "
     The error should match pattern '*?# ?# ?# ' 
     The variable REPLY should eq 'blue'
     The status should eq 0
@@ -162,7 +162,7 @@ Describe 'askUser choose'
       #|yellow
     End
     When call askUser choose -v isYellow "${QUESTION}"
-    The output should eq "${QUESTION}" 
+    The output should eq "➔ ${QUESTION} "
     The error should match pattern '1)*?# ' 
     The variable REPLY should eq 'yellow'
     The status should eq 0
@@ -174,7 +174,7 @@ Describe 'askUser choose'
       #|2
     End
     When call askUser choose "${QUESTION}"
-    The output should eq "${QUESTION}"
+    The output should eq "➔ ${QUESTION} "
     The error should match pattern '1)*?# ' 
     The variable REPLY should eq 'red'
     The status should eq 0
@@ -196,7 +196,7 @@ Describe 'askUser info'
       #|answer
     End
     When call askUser info "${QUESTION}"
-    The output should eq "${QUESTION} "
+    The output should eq "➔ ${QUESTION} "
     The error should eq ''
     The variable REPLY should eq 'answer'
     The status should eq 0
@@ -208,7 +208,7 @@ Describe 'askUser info'
       #|answer
     End
     When call askUser info "${QUESTION}"
-    The output should eq "${QUESTION} ${QUESTION} "
+    The output should eq "➔ ${QUESTION} ➔ ${QUESTION} "
     The error should eq ''
     The variable REPLY should eq 'answer'
     The status should eq 0
@@ -217,7 +217,7 @@ Describe 'askUser info'
   It 'shows default value in prompt line if one is given'
     Data 'myanswer'
     When call askUser info -d myvalue "${QUESTION}"
-    The output should eq "${QUESTION} debug: [default: myvalue] "
+    The output should eq "➔ ${QUESTION} [default: myvalue] "
     The error should eq ''
     The variable REPLY should eq 'myanswer'
     The status should eq 0
@@ -228,7 +228,7 @@ Describe 'askUser info'
       #|
     End
     When call askUser info -d myvalue "${QUESTION}"
-    The output should eq "${QUESTION} debug: [default: myvalue] "
+    The output should eq "➔ ${QUESTION} [default: myvalue] "
     The error should eq ''
     The variable REPLY should eq 'myvalue'
     The status should eq 0
@@ -243,7 +243,7 @@ Describe 'askUser info'
       #|9
     End
     When call askUser info -v smallNumber "${QUESTION}"
-    The output should eq "${QUESTION} ${QUESTION} "
+    The output should eq "➔ ${QUESTION} ➔ ${QUESTION} "
     The error should eq ''
     The variable REPLY should eq '9'
     The status should eq 0

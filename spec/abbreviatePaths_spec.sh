@@ -1,7 +1,4 @@
 Describe 'abbreviatePaths'
- setup() { lop setoutput -l info tostdout }
- BeforeAll 'setup'
-
  It 'prints usage if help option is given'
   When call abbreviatePaths --help
   The output should match pattern 'Usage: abbreviatePaths*'

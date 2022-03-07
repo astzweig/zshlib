@@ -2,102 +2,116 @@
 # vi: set expandtab ft=zsh tw=80 ts=2
 declare -gA _ZSHLIB_LOP_OPTIONS
 
-function _zshlib_lop_filter_messages_by_loglevel() {
-  local -A levelmap=([debug]=7 [info]=6 [section]=6 [subsection]=6 [success]=6 [notice]=5 [warn]=4 [warning]=4 [error]=3 [crit]=2 [critical]=2 [alert]=1 [emerg]=0 [emergency]=0 [panic]=0)
-  [ -z "${loglevel}" ] && return
-  test "${levelmap[${loglevel}]}" -ge "${levelmap[${curLvl}]}"
+function _zshlib_lop_filterMessagesByLoglevel() {
+  local level= delete=
+  for level in ${loglevels}; do
+    [ "${loglevel}" = "${level}" ] && break
+    set -A ${level}
+  done
+
+  for level in ${loglevels}; do
+    [ "${delete}" = true ] && set -A ${level}
+    [ "${(P)#level}" -gt 0 ] && delete=true
+  done
 }
 
 function _zshlib_lop_to_syslog() {
   # Log a message to syslog
+  local taglineoption=()
   [ -n "${tagline}" ] && taglineoption=('-t' "${tagline}")
-  local -A levelmap=([success]=info [section]=info [subsection]=info [warning]=warn [critical]=crit [emergency]=emerg)
 
-  for i in {1..$#level}; do
-    local curLvl="${level[$i]}" curMsg="${message[$i]}"
-    _zshlib_lop_filter_messages_by_loglevel || continue
-    [ -n "${levelmap[${curLvl}]}" ] && curLvl="${levelmap[${curLvl}]}"
-    logger ${taglineoption} -p "${curLvl}" "${curMsg}"
+  for level in ${loglevels}; do
+    [ "${(P)#level}" -gt 0 ] && logger ${taglineoption} -p "${level}" "${(P)level}"
   done
 }
 
-function _zshlib_lop_prefix_time_and_tag() {
+function _zshlib_lop_prefixTimeAndTag() {
   # Print time and a tag inside brackets ('[]') and in that order. Time only if
   # output is not to stdout and tag only if provided.
-  [ ! -t 1 ] && local time="`date +%H:%M:%S`"
+  test -t 1 || local time=`date +%H:%M:%S`
   [ -z "${tagline}" -a -z "${time}" ] && return
-  local args
+  local args=()
   for varname in time tagline; do
-    [ -n "${(P)varname}" ] && args+=("${(P)varname}")
+    [ -n "${(P)varname}" ] && args+=(${(P)varname})
   done
-  hio -n info "[${args}] "
+  hio -n -- body:add "[${args}] "
 }
 
 function _zshlib_lop_to_stdout() {
   # Log a message to stdout
-  local args=()
-  [ ${#level} -lt 1 ] && return
-  [ "${no_newline}" = "true" ] && args+=('-n')
-  for i in {1..$#level}; do
-    local curLvl="${level[$i]}" curMsg="${message[$i]}"
-    _zshlib_lop_filter_messages_by_loglevel || continue
-    args+=("${curLvl}" "${curMsg}")
+  local level= item= tagarg= newlineArgs=()
+  [ "${no_newline}" = true ] && newlineArgs=('-n')
+  for level in ${loglevels}; do
+    if [ ${(P)#level} -gt 0 ]; then
+      _zshlib_lop_prefixTimeAndTag
+      hio ${newlineArgs} -- ${type} ${(j. .P)level}
+    fi
   done
-
-  if [ "${#args}" -gt 1 ]; then
-    _zshlib_lop_prefix_time_and_tag
-    hio "${args[@]}"
-  fi
   return 0
 }
 
+function _zshlib_lop_fillLogLevelOpts() {
+  local i=1 loglevel=
+  for ((i=1; i <= ${#loglevels}; i++)); do
+    loglevel=${loglevels[$i]}
+    loglevelopts+=("`printf '  %-27s %-38s %s' "-${loglevel[1]} MSG, --${loglevel} MSG" "Add message with ${loglevel} level. Prio:" $i`")
+  done
+}
+
 function lop() {
+  local loglevelopts=() loglevels=(debug info notice warning error critical alert panic)
+  _zshlib_lop_fillLogLevelOpts
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
-	  $0 [options] [(<level> <message>)...]
+	  $0 [options] [(-d MSG|-i MSG|-n MSG|-w MSG|-e MSG|-c MSG|-a MSG|-p MSG)...]
 	
-	In the first form set the output place for all subsequent calls. In the second
-	form output the given messages according to their specified level to the prior
-	defined output place or stdout. Message level can be any of debug, info,
-	notice, warn[ing], error, crit[ical], alert, emerg[ency]/panic and success.
+	In the first form preconfigure the output for all subsequent calls. In the second
+	form output the message with the lowest priority (level) that is not filtered by
+	loglevel option. Default output is to stdout using hio.
 	
 	Options:
+	${(pj.\n.)loglevelopts}
 	  -t TAG, --tagline TAG       Prefix output with the given tag.
-	  -l LEVEL, --loglevel LEVEL  Set the log level.
+	  -y TYPE, --type TYPE        Message type if printed to stdout using hio [default: body].
+	  -l LEVEL, --loglevel LEVEL  Set the log level. All leveles below will be filtered out.
 	  -f PATH, --filename PATH    Print to file instead of standard output.
 	  -s, --syslog                Print to syslog instead of standard output. If
 	                              s and f are provided, the messages are logged
 	                              to syslog.
-	  -n, --no-newline            Do not print a newline at the end.
+	  --no-newline                Do not print a newline at the end.
 	----
-	$0 0.1.0
+	$0 0.2.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
   [ $# -eq 0 ] && return
   if [ "${setoutput}" = 'true' ]; then
-    [ "${tostdout}" = 'true' ] && unset '_ZSHLIB_LOP_OPTIONS[-f]'
+    [ "${tostdout}" = 'true' ] && { unset '_ZSHLIB_LOP_OPTIONS[-f]'; unset '_ZSHLIB_LOP_OPTIONS[-s]' }
     [ "${tosyslog}" = 'true' ] && _ZSHLIB_LOP_OPTIONS+=('-s' 'true')
     [ -n "${filepath}" ] && _ZSHLIB_LOP_OPTIONS+=('-f' "${filepath}")
     [ -n "${loglevel}" ] && _ZSHLIB_LOP_OPTIONS+=('-l' "${loglevel}")
     return 0
   fi
 
-  [ -n "${_ZSHLIB_LOP_OPTIONS[-l]}" ] && loglevel="${_ZSHLIB_LOP_OPTIONS[-l]}"
-  if [ "${syslog:-${_ZSHLIB_LOP_OPTIONS[-s]}}" = 'true' ]; then
+  loglevel="${loglevel:-${_ZSHLIB_LOP_OPTIONS[-l]}}"
+  [ -z "${loglevel}" ] && loglevel=debug
+  _zshlib_lop_filterMessagesByLoglevel
+  if [ "${syslog}" = true -o "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ]; then
     _zshlib_lop_to_syslog
   else
     local output=/dev/stdout
     [ -n "${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}" ] && output="${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}"
-    _zshlib_lop_to_stdout > "${output}"
+    _zshlib_lop_to_stdout > ${output}
   fi
   return 0
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
   _DIR="${0:A:h}"
-  whence hio > /dev/null || source "${_DIR}/hio"
+  for c in hio pf isTerminalBackgroundDark; do
+    whence $c > /dev/null || source "${_DIR}/$c"
+  done
   lop "$@"
 fi
 

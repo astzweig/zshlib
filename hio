@@ -1,40 +1,154 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
 
+function _zshlib_hio_setNewlineArgs() {
+  test "$no_newline" = true -a -n "${addon}" -a "${explanation}" != true && addonArgs=(-n)
+  test "$no_newline" = true -a "${explanation}" = true && { explArgs=(-n) no_newline=false }
+  test -n "${addon}" && no_newline=true
+}
+
+function _zshlib_hio_getModifier() {
+  local parts=(${(s.:.)type})
+  type=${parts[1]}
+  [ ${#parts} -lt 2 -o -z "${parts[2]}" ] && return
+  modifier=${parts[2]}
+}
+
+function _zshlib_hio_defineStyle() {
+  local -A styles=() subStyles=()
+  if isTerminalBackgroundDark; then
+    styles=([title]=bold,smul [h1]=bold,130 [h2]=255 [body]=8)
+    subStyles=([title]=239 [h1]=125 [h2]=239 [body]=234)
+    modifierStyles=(sub "${subStyles[$type]}" add 239 warn 202 quest 180 error 9 success 70 expl 234 failure 9 done 70 note 27 active 255)
+  else
+    styles=([title]=bold,smul [h1]=bold,130 [h2]=25 [body]=235)
+    subStyles=([title]=239 [h1]=125 [h2]=75 [body]=245)
+    modifierStyles=(sub "${subStyles[$type]}" add 239 warn 202 quest bold,166 error 9 success 70 expl 245 failure 9 done 70 note 27 active 0)
+  fi
+  style=${styles[$type]}
+  [ -n "${previousModifierStyle}" ] && { modifierStyles+=(expl ${previousModifierStyle}) previousModifierStyle= }
+}
+
+function _zshlib_hio_modifyStyle() {
+  [ -z "${modifier}" ] && return
+  local modifierStyle=${modifierStyles[$modifier]}
+  [ -z "$modifierStyle" ] && return
+  if [ "${colorOverwriting[(ie)$modifier]}" -le "${#colorOverwriting}" ]; then
+    style="${style},${modifierStyle}"
+  fi
+}
+
+function _zshlib_hio_printPrefixSmybol() {
+  [ -z "${modifier}" ] && return
+  local -A prefixSymbols=(li · warn ⚠ quest ➔ error ☠ add '' expl ↳ success ✓ failure ✗ done ✓ note !  active ➔)
+  local prefixSymbol=${prefixSymbols[$modifier]}
+  local modifierStyle=${modifierStyles[$modifier]} cmd=()
+  [ -z "${prefixSymbol}" ] && return
+  [ -z "${modifierStyle}" ] && { _zshlib_hio_copyColor "${style}"; modifierStyle=${color} }
+  [ -n "${modifierStyle}" ] && { previousModifierStyle=${modifierStyle} cmd=(-c ${modifierStyle})}
+  pf -r $cmd -- -n "${prefixSymbol} "
+}
+
+function _zshlib_hio_copyColor() {
+  local style=$1 item=
+  for item in ${(s.,.)style}; do
+    test "${item}" -eq "${item}" 2> /dev/null && color=${item}
+  done
+}
+
+function _zshlib_hio_printMessage() {
+  local cmd=() newline=()
+  [ -n "${style}" ] && cmd=(-c ${style})
+  [ "${no_newline}" = true ] && newline=(-n)
+  pf -r $cmd -- ${newline} ${message}
+}
+
+function _zshlib_hio_printExplanation() {
+  [ ${#explanation} -le 0 ] && return
+  local i=
+  for (( i=1; i < ${#explanation}; i++ )); do
+    hio -- "${type}:expl" "${explanation[$i]}"
+  done
+  hio ${explArgs} -- "${type}:expl" "${explanation[-1]}"
+}
+
+function _zshlib_hio_showExamples() {
+  local h2 body mod
+
+  local h2s=('Step 1' 'Step 2')
+  local mods=(' ' sub li warn quest error add expl success failure done note active)
+  local prefix=
+  hio title "Exemplary Output (title)"
+  hio title:sub "Output colorful text using hio (title:sub)"
+  hio h1 '\nSet up (h1)'
+  hio h2 'Generatig initial state (h2)'
+  hio h2:sub 'for color calculations (h2:sub)'
+  hio body 'Remaining steps are (body)'
+  hio body:li 'Setting dark or bright colors (body:li)'
+  hio body:li 'Generating follow-up colors for expl modifier (body:li)'
+  hio body:note 'You can generate your own color schemes by overwritting _zshlib_hio_defineStyle.'
+  hio body:quest -a Y/n 'Shall we continue? (body:quest)'
+  hio body:success 'Colors set. (body:success)'
+  hio h2 '\nApplying option state change (h2)'
+  hio -e 'Color is now blue. (body:expl)' body:done 'Apply modifier color. (body:done)'
+  hio -e 'No previous color code defined. (body:expl)' body:failure 'Adapt previous color code. (body:failure)'
+  hio body:warn 'Failed to apply all option state changes. (body:warn)'
+  hio body:error 'Exemplary error occurred. (body:error)'
+  hio h1 '\nProcessing Output (h1)'
+  hio body:done 'Applying colors to different message parts.'
+  hio body:success 'All messages processed'
+  hio body:active 'Printing example'
+}
+
 function hio() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
-	Usage: $0 [options] [(<level> <message>)...]
+	Usage:
+	  $0 examples
+	  $0 [options] [-e MSG...] [--] [(<type> <message>...)]
 
-	Output the given messages according to their specified level. Message level
-	can be any of debug, info, section, warn[ing], error success.
-	
-	Options:
-	  -n, --no-newline  Do not print a newline at the end of the messages.
+	In the first form prints example text illustrating the different text type
+	styles. In the second form prints messages according to predefined message
+	types and modifiers. All messages are passed through to pf. Message type can be
+	any of title, h1, h2 and body. Any type can be suffixed by a colon and one of
+	the following modifiers: sub, li, warn, quest, error, add, success, failure,
+	done, note, active.
+
+  Options:
+	  -n, --no-newline            Do not print newline at the end of the messages.
+	  -a MSG, --addon MSG         Print MSG as same type with add modifier after the given messages.
+	  -e MSG, --explanation MSG   Print MSG as same type with expl modifier after the given message.
 	----
-	$0 0.1.0
+	$0 0.2.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  [ $# -eq 0 ] && return
+  [ "$examples" = true ] && { _zshlib_hio_showExamples; return }
+  [ $# -eq 0 -o ${#message} -le 0 ] && return
 
-  local tput=(tput setaf)
-  local -A colors=([debug]="`$tput 7`" [info]="" [section]="`$tput 4`" [warn]="`$tput 3`" [warning]="`$tput 3`" [error]="`$tput 1`" [success]="`$tput 2`" [reset]="`tput sgr0`")
-  [ ! -t 1 ] && colors=()
+  local addonArgs=() explArgs=()
+  _zshlib_hio_setNewlineArgs
 
-  local msgToLog=""
-  for i in {1..$#level}; do
-    local curLvl="${level[$i]}" curMsg="${message[$i]}"
-    local msgToAdd="${colors[$curLvl]}${curMsg}${colors[reset]}"
+  local -A modifierStyles
+  local modifier= style= previousModifierStyle=${previousModifierStyle:-}
+  local colorOverwriting=(sub add warn quest error success note active) 
 
-    [ ! -t 1 -a "${curLvl}" != 'info' ] && msgToAdd="${curLvl}: ${curMsg}"
-    [ -z "${msgToLog}" ] && msgToLog="${msgToAdd}" || msgToLog="${msgToLog} ${msgToAdd}"
-  done
-
-  printf '%s' "${msgToLog}"
-  [[ "${no_newline}" == 'false' ]] && printf '\n'
+  _zshlib_hio_getModifier
+  _zshlib_hio_defineStyle
+  _zshlib_hio_modifyStyle
+  _zshlib_hio_printPrefixSmybol
+  _zshlib_hio_printMessage
+  [ -n "${addon}" ] && hio ${addonArgs} "${type}:add" " ${addon}"
+  _zshlib_hio_printExplanation
   return 0
 }
 
-if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+  _DIR="${0:A:h}"
+  whence isTerminalBackgroundDark > /dev/null || source "${_DIR}/isTerminalBackgroundDark"
+  whence pf > /dev/null || source "${_DIR}/pf"
+  hio "$@"
+fi
+
+if [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
   hio "$@"
 fi

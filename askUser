@@ -2,11 +2,11 @@
 # vi: set expandtab ft=zsh tw=80 ts=2
 
 function _zshlib_askUser_info() {
-  local passwordOption=''
+  local passwordOption=
   [ "${password}" = true ] && passwordOption='-s'
+  [ -z "${defaulthint}" ] && prompt="${prompt} "
   while true; do
-    hio -n info "${prompt} "
-    [ -n "${default}" ] && hio -n debug "[default: ${default}] "
+    hio -n ${defaulthint} -- body:quest "${prompt}"
     read -u 0 ${passwordOption}
     [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
     if [ -n "${REPLY}" ]; then
@@ -20,31 +20,32 @@ function _zshlib_askUser_confirm() {
   [ "${y}" = true ] && answerChoices+=(Y) || answerChoices+=(y)
   [ "${n}" = true ] && answerChoices+=(N) || answerChoices+=(n)
   while true; do
-    hio -n info "${prompt} [${(j./.)answerChoices}] "
+    hio -n -a "[${(j./.)answerChoices}] " -- body:quest "${prompt}"
     read -u 0 -k
     REPLY="${REPLY//[^A-Za-z]/}"
     if [ -n "${REPLY}" ]; then
       [[ "${REPLY}" =~ [Yy] ]] && return
       [[ "${REPLY}" =~ [Nn] ]] && return 1
-      hio error 'Unrecognized input. Please confirm with y or n.' >&2
+      hio -- body:error 'Unrecognized input. Please confirm with y or n.' >&2
     elif [ "${y}" = true ]; then
       return
     elif [ "${n}" = true ]; then
       return 1
     else
-      hio error 'No input made. Please confirm with y or n.' >&2
+      hio -- body:error 'No input made. Please confirm with y or n.' >&2
     fi
   done
 }
 
 function _zshlib_askUser_choose() {
-  local choice
+  local choice=
   if [[ "${(t)choices}" != array* ]]; then
-    hio error 'choices must be an array defined outside.' >&2
+    hio body:error 'choices must be an array defined outside.' >&2
     return 64
   fi
   [ "${#choices}" -lt 1 ] && return
-  hio info "${prompt}${defaulthint}"
+  [ -z "${defaulthint}" ] && prompt="${prompt} "
+  hio ${defaulthint} -- body:quest "${prompt}"
   select choice in "${choices[@]}"; do
     if [ -n "${choice}" ]; then
       REPLY="${choice}"
@@ -96,6 +97,8 @@ function askUser() {
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
   REPLY=
+  local defaulthint=
+  [ -n "${default}" ] && defaulthint=(-a "[default: ${default}] ")
   if [ "${info}" = true ]; then
     _zshlib_askUser_info
   elif [ "${confirm}" = true ]; then
@@ -107,7 +110,9 @@ function askUser() {
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
   _DIR="${0:A:h}"
-  whence hio > /dev/null || source "${_DIR}/hio"
+  for c in hio pf isTerminalBackgroundDark; do
+    whence $c > /dev/null || source "${_DIR}/$c"
+  done
   askUser "$@"
 fi
 

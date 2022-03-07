@@ -1,105 +1,109 @@
-% TAG: 'mytag'
-% MSG: 'mymessage'
-
 Describe 'lop'
+ logger() { [ $# -gt 4 ] && syslogmsg=$5 || syslogmsg=$3 }
+
  It 'does do nothing if called without any argument'
   When call lop
   The output should eq ''
   The status should be success
  End
 
- It 'does do nothing if called with only n option'
-  When call lop -n
+ It 'does do nothing if called with only --no-newline option'
+  When call lop --no-newline
   The output should eq ''
   The status should be success
  End
 
- It 'does print the tagline'
-  When call lop -t "${TAG}" info "${MSG}"
-  The output should match pattern "*${TAG}] ${MSG}"
-  The status should be success
- End
-
- It 'does print the tagline only at line start'
-  When call lop -t "${TAG}" info "${MSG}" info "${MSG}"
-  The output should match pattern "*${TAG}] ${MSG} ${MSG}"
-  The status should be success
- End
-
- It 'does print to file when one is given'
-  TMPFILE="`mktemp`"
-  When call lop -f "${TMPFILE}" info "${MSG}"
-  The path "${TMPFILE}" should be file
-  The path "${TMPFILE}" should not be empty file
+ It 'does do nothing if called with only -s option'
+  When call lop -s
   The output should eq ''
   The status should be success
  End
 
- It 'does print to syslog when asked to'
-  When call lop -s info "${MSG}"
+ It 'does do nothing if called with only -f option'
+  When call lop -f /dev/stdout
   The output should eq ''
   The status should be success
  End
 
- It 'does map log level for syslog'
-  When call lop -s success "${MSG}"
+ It 'does do nothing if called with only -l option'
+  When call lop -l info
   The output should eq ''
   The status should be success
  End
 
- It 'can configure output in advance'
-  TMPFILE="`mktemp`"
-  lop setoutput "${TMPFILE}"
-  When call lop info "${MSG}"
-  The path "${TMPFILE}" should be file
-  The path "${TMPFILE}" should not be empty file
+ It 'prints debug message'
+  msg='some message'
+  When call lop -d "${msg}"
+  The output should match pattern "*] ${msg}"
+  The status should be success
+ End
+
+ It 'prints debug message if both debug and info message are given'
+  msg='some message'
+  When call lop -d "${msg}" -i 'some other message here'
+  The output should match pattern "*] ${msg}"
+  The status should be success
+ End
+
+ It 'does not print debug if loglevel is set to info'
+  When call lop -l info -d 'some message'
   The output should eq ''
   The status should be success
  End
 
  It 'can configure loglevel in advance'
-  lop setoutput -l warn tostdout
-  When call lop info "${MSG}"
+  lop setoutput -l info tostdout
+  When call lop -d 'some message'
   The output should eq ''
   The status should be success
  End
 
- It 'prints nothing if everything is filtered and n option is given'
-  lop setoutput -l warn tostdout
-  When call lop -n debug "${MSG}"
-  The output should eq ''
+ It 'does print info if loglevel is set to info'
+  msg='some other message'
+  When call lop -l info -d 'some message' -i "${msg}"
+  The output should match pattern "*] ${msg}"
   The status should be success
  End
 
- It 'can reset output in advance'
-  TMPFILE="`mktemp`"
-  lop setoutput "${TMPFILE}"
-  lop setoutput tostdout
-  When call lop info "${MSG}"
-  The path "${TMPFILE}" should be file
-  The path "${TMPFILE}" should be empty file
-  The output should match pattern "*${MSG}"
+ It 'prints tagline if one is given'
+  msg='some message'
+  tag='some tag'
+  When call lop -t "${tag}" -d "${msg}"
+  The output should match pattern "*${tag}] ${msg}"
   The status should be success
  End
 
- It 'does log message if level is less than filter'
-  When call lop -l info warning "${MSG}"
-  The output should match pattern "*${MSG}"
+ It 'prints to file if told so'
+  msg='some other message'
+  tmpfile="`mktemp`"
+  When call lop -f "${tmpfile}" -d "${msg}" -i 'some other message'
+  The contents of file "${tmpfile}" should match pattern "*] ${msg}"
   The status should be success
  End
 
- It 'does not log message if level is greater than or equal to filter'
-  When call lop -l info debug "${MSG}"
-  The output should eq ''
+ It 'can configure output to file in advance'
+  msg='some other message'
+  tmpfile="`mktemp`"
+  lop setoutput "${tmpfile}"
+  When call lop -d "${msg}" -i 'some other message'
+  The contents of file "${tmpfile}" should match pattern "*] ${msg}"
   The status should be success
  End
 
- It 'does prioritize syslog to file'
-  TMPFILE="`mktemp`"
-  When call lop -s -f "${TMPFILE}" info "${MSG}"
-  The path "${TMPFILE}" should be file
-  The path "${TMPFILE}" should be empty file
-  The output should eq ''
+ It 'pushes message to syslog if asked for'
+  syslogmsg=
+  msg='some other message'
+  When call lop -s -d "${msg}" -i 'some other message'
+  The variable syslogmsg should eq "${msg}"
+  The status should be success
+ End
+
+ It 'can configure output to syslog in advance'
+  syslogmsg=
+  msg='some other message'
+  lop setoutput tosyslog
+  When call lop -d "${msg}" -i 'some other message'
+  The variable syslogmsg should eq "${msg}"
   The status should be success
  End
 End
