@@ -39,12 +39,14 @@ function _zshlib_lop_prefixTimeAndTag() {
 
 function _zshlib_lop_to_stdout() {
   # Log a message to stdout
-  local level= item= tagarg= newlineArgs=()
+  local -A defaultTypes=(debug body:add info body notice body:note warning body:warn error body:error critical body:error alert body:error panic body:error)
+  local typeArg= level= item= tagarg= newlineArgs=()
   [ "${no_newline}" = true ] && newlineArgs=('-n')
   for level in ${loglevels}; do
     if [ ${(P)#level} -gt 0 ]; then
       _zshlib_lop_prefixTimeAndTag
-      hio ${newlineArgs} -- ${type} ${(j. .P)level}
+      [ -n "$type" ] && typeArg=${type} || typeArg=${defaultTypes[$level]}
+      hio ${newlineArgs} -- ${typeArg} ${(j. .P)level}
     fi
   done
   return 0
@@ -65,7 +67,8 @@ function lop() {
 	Options:
 	${(F)loglevelopts}
 	  -t TAG, --tagline TAG       Prefix output with the given tag.
-	  -y TYPE, --type TYPE        Message type if printed to stdout using hio [default: body].
+	  -y TYPE, --type TYPE        Message type if printed to stdout using hio. Default is
+	                              body with a modifier depending on the message level.
 	  -l LEVEL, --loglevel LEVEL  Set the log level. All leveles below will be filtered out.
 	  -f PATH, --filename PATH    Print to file instead of standard output.
 	  -s, --syslog                Print to syslog instead of standard output. If
