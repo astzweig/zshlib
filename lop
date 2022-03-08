@@ -52,17 +52,33 @@ function _zshlib_lop_to_stdout() {
   return 0
 }
 
+_zshlib_lop_preconfigureOutput() {
+  [ "${tostdout}" = 'true' ] && { unset '_ZSHLIB_LOP_OPTIONS[-f]'; unset '_ZSHLIB_LOP_OPTIONS[-s]' }
+  [ "${tosyslog}" = 'true' ] && _ZSHLIB_LOP_OPTIONS+=('-s' 'true')
+  [ -n "${filepath}" ] && _ZSHLIB_LOP_OPTIONS+=('-f' "${filepath}")
+  [ -n "${loglevel}" ] && _ZSHLIB_LOP_OPTIONS+=('-l' "${loglevel}")
+}
+
+_zshlib_lop_printCurrentOutputConfiguration() {
+  local output=stdout
+  [ -n "${_ZSHLIB_LOP_OPTIONS[-f]}" ] && output="${_ZSHLIB_LOP_OPTIONS[-f]}"
+  [ "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ] && output=syslog
+  print -- "${output}"
+}
+
 function lop() {
   local loglevelopts=() loglevels=(debug info notice warning error critical alert panic)
   printf -v loglevelopts '  -%1$c MSG, --%1$s MSG%1$14s is used as the message level.' "${loglevels[@]}"
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
+    $0 getoutput
 	  $0 [options] [(-d MSG|-i MSG|-n MSG|-w MSG|-e MSG|-c MSG|-a MSG|-p MSG)...]
 	
 	In the first form preconfigure the output for all subsequent calls. In the second
-	form output the message with the lowest priority (level) that is not filtered by
-	loglevel option. Default output is to stdout using hio.
+	form prints stdout, syslog or the filepath if preconfigured.
+	In the third form output the message with the lowest priority (level) that is
+	not filtered by loglevel option. Default output is to stdout using hio.
 	
 	Options:
 	${(F)loglevelopts}
@@ -81,13 +97,8 @@ function lop() {
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
   [ $# -eq 0 ] && return
-  if [ "${setoutput}" = 'true' ]; then
-    [ "${tostdout}" = 'true' ] && { unset '_ZSHLIB_LOP_OPTIONS[-f]'; unset '_ZSHLIB_LOP_OPTIONS[-s]' }
-    [ "${tosyslog}" = 'true' ] && _ZSHLIB_LOP_OPTIONS+=('-s' 'true')
-    [ -n "${filepath}" ] && _ZSHLIB_LOP_OPTIONS+=('-f' "${filepath}")
-    [ -n "${loglevel}" ] && _ZSHLIB_LOP_OPTIONS+=('-l' "${loglevel}")
-    return 0
-  fi
+  [ "${setoutput}" = true ] && { _zshlib_lop_preconfigureOutput; return 0 }
+  [ "${getoutput}" = true ] && { _zshlib_lop_printCurrentOutputConfiguration; return }
 
   loglevel="${loglevel:-${_ZSHLIB_LOP_OPTIONS[-l]}}"
   [ -z "${loglevel}" ] && loglevel=debug

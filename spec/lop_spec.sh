@@ -1,4 +1,5 @@
 Describe 'lop'
+ syslogmsg=
  logger() { [ $# -gt 4 ] && syslogmsg=$5 || syslogmsg=$3 }
 
  It 'does do nothing if called without any argument'
@@ -84,14 +85,13 @@ Describe 'lop'
  It 'can configure output to file in advance'
   msg='some other message'
   tmpfile="`mktemp`"
-  lop setoutput "${tmpfile}"
-  When call lop -d "${msg}" -i 'some other message'
+  run() { lop setoutput "${tmpfile}"; lop -d "${msg}" -i 'some other message'; }
+  When call run
   The contents of file "${tmpfile}" should match pattern "*] ${msg}"
   The status should be success
  End
 
  It 'pushes message to syslog if asked for'
-  syslogmsg=
   msg='some other message'
   When call lop -s -d "${msg}" -i 'some other message'
   The variable syslogmsg should eq "${msg}"
@@ -99,11 +99,30 @@ Describe 'lop'
  End
 
  It 'can configure output to syslog in advance'
-  syslogmsg=
   msg='some other message'
-  lop setoutput tosyslog
-  When call lop -d "${msg}" -i 'some other message'
+  run() { lop setoutput tosyslog; lop -d "${msg}" -i 'some other message'; }
+  When call run
   The variable syslogmsg should eq "${msg}"
+  The status should be success
+ End
+
+ It 'returns the default output form'
+  When call lop getoutput
+  The output should eq 'stdout'
+  The status should be success
+ End
+
+ It 'returns syslog output if configured'
+  run() { lop setoutput tosyslog; lop getoutput }
+  When call run
+  The output should eq 'syslog'
+  The status should be success
+ End
+
+ It 'returns filepath output if configured'
+  run() { lop setoutput /some/path; lop getoutput }
+  When call run
+  The output should eq '/some/path'
   The status should be success
  End
 End
