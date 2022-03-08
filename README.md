@@ -45,6 +45,7 @@ Or if you want to autoload only specific commands:
 | lop | Log messages to syslog, file or print to command line with highlight. | `hio`[^zshlib], `pf`[^zshlib], `isTerminalBackgroundDark`[^zshlib], [`docopts`][docopts][^docopts] | all |
 | trim | Remove leading and trailing whitespace from string. | [`docopts`][docopts][^docopts] | all |
 | loadModules | Find executable modules in module search paths and allow user to filter or inverse the list. | [`docopts`][docopts][^docopts] | all |
+| askUserModuleQuestions | Ask user questions on behalf of modules with possibility to cache (or store) answers for future calls, e.g. using config. | [`docopts`][docopts][^docopts] | all |
 | showSpinner | Show a loading animation during execution of a function. | [`docopts`][docopts][^docopts] | all |
 | askUser | Ask user for input. Supports questions, password, selections or confirmations. | `hio`[^zshlib], [`docopts`][docopts][^docopts] | all |
 | getPrefDir | Get system specific preferences directory. | [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |

@@ -1,0 +1,207 @@
+#!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
+
+function _zshlib_askUserModuleQuestions_parseQuestionLine() {
+  local questionType parameterName question value arguments args
+  local -A typeMap=([i]=info [p]=password [c]=confirm [s]=select)
+  [ -z "${line}" ] && return
+  [ "${line[2]}" != ':' ] && return 10
+
+  questionType=$typeMap[${line[1]}]
+  [ -z "${questionType}" ] && return 11
+
+  # remove question type
+  [ "${line[3]}" = ' ' ] && line=${line:3} || line=${line:2}
+
+  line=(${(s.=.)line[@]})
+  parameterName=${line[1]}
+  [ -z "${parameterName}" ] && return 12
+  [ "${parameterName[1]}" = - ] && return 13
+
+  # remove parameter name
+  line="${(j.=.)${(@)line:1}}"
+
+  line=("${(s. #.)line}")
+  question=${line[1]}
+  [ -z "${question}" ] && return 14
+
+  # remove question part
+  line="${(j. #.)${(@)line:1}}"
+
+  if [ -n "${line}" ]; then
+    arguments=(${(s.;.)line})
+    for arg in ${arguments}; do
+      arg=("${(s.:.)arg}")
+      [ -z "${arg[1]}" ] && return 15
+      arg[1]="`trim "${arg[1]}"`"
+      arg[2]="`trim "${arg[2]}"`"
+      questionType+=";${(j.:.)arg}"
+    done
+  fi
+
+
+  printf -v value '%s\n%s' "${question}" "${questionType}"
+  questions+=("${parameterName}" "${value}")
+}
+
+function _zshlib_askUserModuleQuestions_populateQuestionsWithModuleRequiredInformation() {
+  for line in ${(f)"$(${mod} show-questions)"}; do
+    _zshlib_askUserModuleQuestions_parseQuestionLine
+  done
+}
+
+function _zshlib_askUserModuleQuestions_findQuestionArgInInstruction() {
+  local argNameToLookup="$1" arg name value
+  [ -z "${argNameToLookup}" ] && return
+  for arg in ${instructions}; do
+    arg=("${(s.:.)arg}")
+    [ "${#arg}" -lt 2 ] && continue
+    name="${arg[1]}"
+    value="${arg[2]}"
+    [ "${name}" != "${argNameToLookup}" ] && continue
+    argValue="${value}"
+    return
+  done
+  return 10
+}
+
+function _zshlib_askUserModuleQuestions_convertQuestionArgsToAskUserArgs() {
+  local argValue
+  local instructions=("${(s.;.)questionArgs}")
+  local questionType="${instructions[1]}"
+  shift instructions
+
+  if [ "${questionType}" = 'info' ]; then
+    args=(info)
+    if _zshlib_askUserModuleQuestions_findQuestionArgInInstruction 'default'; then
+      test -n "${argValue}" && args=('-d' "${argValue}" ${args})
+    fi
+  elif [ "${questionType}" = 'password' ]; then
+    args=('-p' info)
+  elif [ "${questionType}" = 'confirm' ]; then
+    args=(confirm)
+  elif [ "${questionType}" = 'select' ]; then
+    _zshlib_askUserModuleQuestions_findQuestionArgInInstruction 'choose from' || return 10
+    choices=("${(s.,.)argValue}")
+    [ "${#choices}" -ge 1 ] || return 11
+    args=(choose)
+    _zshlib_askUserModuleQuestions_findQuestionArgInInstruction 'validator' && args+=(-v ${argValue})
+  fi
+  return 0
+}
+
+function _zshlib_askUserModuleQuestions_askUserQuestion() {
+  local choices
+  local questionAndArgs=("${(f)questions[$questionID]}") args=()
+  local question="${questionAndArgs[1]}" questionArgs="${questionAndArgs[2]}"
+  _zshlib_askUserModuleQuestions_convertQuestionArgsToAskUserArgs
+  askUser "${args[@]}" "${question}"
+  value="${REPLY}"
+}
+
+function _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID() {
+  setopt localoptions extendedglob
+  [ $# -lt 2 -o -z "$1" -o -z "$2" ] && return
+  local modName="${1}" questID="${2}"
+  modName="${${${${modName//-##/_}/#_/}/%_/}//[^A-Za-z_]/}"
+  questID="${${${${questID//-##/_}/#_/}/%_/}//[^A-Za-z_]/}"
+  cachekeys=("${modName}" questions "${questID}")
+}
+
+function _zshlib_askUserModuleQuestions_answerQuestionFromCacheIfGiven() {
+  local func=$1 cachekeys=()
+  [ -x "${cache}" ] || whence ${cache} 2> /dev/null || { $func; return 0 }
+  _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID "${mod}" "${questionID}"
+  value="`${cache} read "${cachekeys[@]}"`"
+  if [ -z "${value}" ]; then
+    $func
+    [ "${no_update}" != true ] && ${cache} write "${value}" "${cachekeys[@]}"
+  fi
+  return 0
+}
+
+function _zshlib_askUserModuleQuestions_answerQuestionsFromCacheOrAskUser() {
+  local questionID
+  for questionID in ${(k)questions}; do
+    local value
+    _zshlib_askUserModuleQuestions_answerQuestionFromCacheIfGiven _zshlib_askUserModuleQuestions_askUserQuestion
+    answers+=("${mod}_${questionID}" "${value}")
+  done
+}
+
+function askUserModuleQuestions() {
+  eval "`docopts -s '====' -f -V - -h - : "$@" <<- USAGE
+	Usage: $0 [options] [<module>...]
+	
+	Ask human user questions on behalf of given <module>s. The process is as follows:
+	1. Query any given module for questions by calling them with their show-questions
+	subcommand.
+	2. Parse module output for questions as described below.
+	3. Ask user those questions.
+	4. Print answers to stdout.
+	Each <module> must be given as a full or relative path to the module if the
+	module is an executable file or as a plain string if it is a shell command.
+	
+	Options:
+	  -v VARNAME, --varname VARNAME  Put answers into paramater VARNAME as array
+	                                 items instead of printing to stdout.
+	  -c CMD, --cache CMD            Call given cache command before or after
+	                                 asking user. If the value is cached the user
+	                                 will not be asked. Otherwise the user answer
+	                                 will be told to cache afterwards. Cache cmd
+	                                 must implement cache interface as described below.
+	  -x, --no-update                Do not write user answers to cache. Useful
+	                                 if answers were prewritten in cache (e.g. like
+	                                 a config).
+	
+	
+	Question Schema:
+	The general schema is:
+	(i|p|c|s): <OPTION NAME>=<QUESTION> [# (<arg name>: <arg value>) [(; <arg name>: <arg value>)...]]
+	
+	Example: s: highlight-color=What color shall your system highlight color be? # choose from: blue,red,light green;
+	The letter at the beginning is the question type:
+	
+	Question type | Description                          | Arguments
+	------------- | ------------------------------------ | -----------------------
+	i (info)      | A question where the user has no     | default: a default
+	              | restrictions on input                | answer
+	------------- | ------------------------------------ | -----------------------
+	p (password)  | A question where the user input is   | -
+	              | not printed to standard output.      |
+	------------- | ------------------------------------ | -----------------------
+	c (confirm)   | A yes/no question where the user is  | -
+	              | allowed to answer yes or no.         |
+	------------- | ------------------------------------ | -----------------------
+	s (select)    | A list of choices where the user can | choose from: a comma
+	              | select one using numbers.            | separated list of
+	              |                                      | possible select values
+	------------- | ------------------------------------ | -----------------------
+	
+	<OPTION NAME> is the the option name, that will receive the user answer
+	when the module is called without any preceding dashes. <QUESTION> must
+	contain any punctuation you want to show, e.g. a question mark.
+	
+	Cache Interface:
+	The cache command must support two subcommands: write and read. Their usage synopsis
+	looks like:
+	  cmd read <key>...
+	  cmd write <value> <key>...
+	====
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  local -A answers
+  local mod
+  for mod in ${module}; do
+    local -A questions=()
+    _zshlib_askUserModuleQuestions_populateQuestionsWithModuleRequiredInformation
+    _zshlib_askUserModuleQuestions_answerQuestionsFromCacheOrAskUser
+  done
+  [ -n "${varname}" ] && set +A ${varname} "${(@kv)answers}" || printf '%s=%s\n' "${(@kv)answers}"
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+  askUserModuleQuestions "$@"
+fi
