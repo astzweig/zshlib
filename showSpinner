@@ -46,7 +46,7 @@ function showSpinner() {
     (( duration >= 0.1 )) || return 10
     (( width >= 1 )) || return 11
     tput civis; stty -echo
-    trap "tput cnorm; stty echo; return" INT TERM EXIT
+    trap "tput cnorm; stty echo" INT TERM EXIT
     _zshlib_showSpinner_spin &
     local jobId=$!
   fi
