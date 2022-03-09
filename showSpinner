@@ -51,7 +51,7 @@ function showSpinner() {
     local jobId=$!
   fi
 
-  $func >&! /dev/null
+  ${(s.,.)func} >&! /dev/null
   result=$?
 
   if test -t 1; then

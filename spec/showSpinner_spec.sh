@@ -38,6 +38,14 @@ Describe 'showSpinner'
     The status should eq 0
   End
 
+  It 'allows argument passing to func'
+    args=
+    myfunc() { args=("$@") }
+    When call showSpinner myfunc,-c,hallo
+    The variable args should eq '-c hallo'
+    The variable 'args[1]' should eq '-c'
+  End
+
   It 'shows the cursor after calling the func'
     cursor_hidden=true
     tput() { [ "$1" = cnorm -a "$func_called" = true ] && cursor_hidden=false; return 0 }
