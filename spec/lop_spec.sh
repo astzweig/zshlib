@@ -42,14 +42,14 @@ Describe 'lop'
  It 'does not print debug if loglevel is set to info'
   When call lop -l info -d 'some message'
   The output should eq ''
-  The status should be success
+  The status should eq 1
  End
 
  It 'can configure loglevel in advance'
   lop setoutput -l info tostdout
   When call lop -d 'some message'
   The output should eq ''
-  The status should be success
+  The status should eq 1
  End
 
  It 'does print info if loglevel is set to info'
@@ -117,5 +117,11 @@ Describe 'lop'
   When call run
   The output should eq '/some/path'
   The status should be success
+ End
+
+ It 'returns one if all messages are filtered'
+  When call lop -l error -i 'Some info message' -n 'Some notice message'
+  The output should eq ''
+  The status should eq 1
  End
 End
