@@ -1,34 +1,27 @@
+Describe 'lop misuse'
+ Parameters
+  'called without any argument' ''
+  'called with only --no-newline option' --no-newline
+  'called with only -s option' -s
+  'called with only -f option' -f,/dev/stdout
+  'called with only -l option' -l,info
+ End
+
+ It "prints help if $1"
+  When call lop ${(s.,.)2}
+  The output should eq ''
+  The error should match pattern 'error:*Usage*lop*'
+  The status should be failure
+ End
+End
+
 Describe 'lop'
  syslogmsg=
  logger() { [ $# -gt 4 ] && syslogmsg=$5 || syslogmsg=$3 }
 
- It 'does do nothing if called without any argument'
-  When call lop
-  The output should eq ''
-  The status should be success
- End
-
- It 'does do nothing if called with only --no-newline option'
-  When call lop --no-newline
-  The output should eq ''
-  The status should be success
- End
-
- It 'does do nothing if called with only -s option'
-  When call lop -s
-  The output should eq ''
-  The status should be success
- End
-
- It 'does do nothing if called with only -f option'
-  When call lop -f /dev/stdout
-  The output should eq ''
-  The status should be success
- End
-
- It 'does do nothing if called with only -l option'
-  When call lop -l info
-  The output should eq ''
+ It 'prints help if called with --help option'
+  When call lop --help
+  The output should match pattern 'Usage*lop*'
   The status should be success
  End
 

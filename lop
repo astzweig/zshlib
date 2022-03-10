@@ -73,7 +73,7 @@ function lop() {
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
     $0 getoutput
-	  $0 [options] [(-d MSG|-i MSG|-n MSG|-w MSG|-e MSG|-c MSG|-a MSG|-p MSG)...]
+	  $0 [options] (-d MSG|-i MSG|-n MSG|-w MSG|-e MSG|-c MSG|-a MSG|-p MSG)...
 	
 	In the first form preconfigure the output for all subsequent calls. In the second
 	form prints stdout, syslog or the filepath if preconfigured.
