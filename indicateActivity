@@ -3,15 +3,14 @@
 
 function indicateActivity() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
-	Usage: $0 [options] -w FUNC [--] <args>...
+	Usage: $0 [options] [--] <func> <msg>...
 	
-	Show a spinner during run of FUNC if the output is connected to a terminal
-	else print three dots and done or failed afterwards. All <args> are passed
-	through to lop. You may not pass y/type or no-newline option to lop. Use this
-	functions options to configure message type.
+	Show a spinner during run of <func> if the output is connected to a terminal
+	else print three dots and done or failed afterwards. Print <msg>s using lop
+	with info level. <func> is a comma separated list of a command and further
+	args.
 	
 	Options:
-	  -w FUNC, --work FUNC       The name of the function to call as workload.
 	  -a STYLE, --active STYLE   hio message type during run of FUNC. [default: body:active]
 	  -s STYLE, --success STYLE  hio message type if FUNC succeeds. [default: body:done]
 	  -f STYLE, --failure STYLE  hio message type if FUNC fails. [default: body:failure]
@@ -21,20 +20,32 @@ function indicateActivity() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  local arg result resultStyle
-  for arg in ${args}; do
-    [[ ${arg} = '-y' || ${arg} = --type ]] && return 10
-  done
+  local msgArgs result resultStyle resultMsg output
+  test -z ${msg} && return 10
 
-  lop --no-newline -y ${active} ${args}
-  if test -t 1 -a "`lop getoutput`" = stdout; then
-    showSpinner ${work} && resultStyle=${success}  || resultStyle=${failure}
+  msgArgs=(${${:--i}:^^msg})
+  test -t 1 || msgArgs[-1]+=...
+
+  output="`lop getoutput -- ${msgArgs}`"
+  lop -n -y ${active} -- ${msgArgs}
+  result=$?
+
+  if [[ -t 1 && $output = stdout && $result -eq 0 ]]; then
+    showSpinner ${func}
+    result=$?
+    [[ $result -eq 0 ]] && resultStyle=${success} || resultStyle=${failure}
     tput cr; tput el;
-    lop -y ${resultStyle} ${args}
+    lop -y ${resultStyle} -- ${msgArgs}
+  elif [[ ! -t 1 && $output != syslog ]]; then
+    showSpinner ${func}
+    result=$?
+    [[ $result -eq 0 ]] && resultMsg=done || resultMsg=failed
+    lop -- -i ${resultMsg}
   else
-    showSpinner ${work} && result=done  || result=failed
-    lop -i ${result}
+    ${(s.,.)func}
+    result=$?
   fi
+  return $result
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
