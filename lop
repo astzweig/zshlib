@@ -68,22 +68,35 @@ _zshlib_lop_printCurrentOutputConfiguration() {
   print -- "${output}"
 }
 
+function _zshlib_lop_pushMessagesToLevelArrays() {
+  local lvl= msg= varname=
+  for lvl msg in ${level:^^message}; do
+    lvl=${lvl//-}
+    varname=${loglevels[(r)${lvl}*]}
+    test -n "${varname}" || return
+    set -A ${varname} ${(P)varname} ${msg}
+  done
+}
+
 function lop() {
   local loglevelopts=() loglevels=(debug info notice warning error critical alert panic)
-  printf -v loglevelopts '  -%1$c MSG, --%1$s MSG%1$14s is used as the message level.' "${loglevels[@]}"
+  local -a ${loglevels}
+  printf -v loglevelopts '-%1$c/--%1$s' "${loglevels[@]}"
+
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
-    $0 getoutput
-	  $0 [options] (-d MSG|-i MSG|-n MSG|-w MSG|-e MSG|-c MSG|-a MSG|-p MSG)...
+	  $0 getoutput
+	  $0 [options] -- (<level> <message>)...
 	
-	In the first form preconfigure the output for all subsequent calls. In the second
-	form prints stdout, syslog or the filepath if preconfigured.
-	In the third form output the message with the lowest priority (level) that is
-	not filtered by loglevel option. Default output is to stdout using hio.
+	In the first form preconfigure the output for all subsequent calls. In the
+	second form prints stdout, syslog or the filepath if preconfigured.
+	In the third form output the message with the lowest priority (level) of all
+	given messages that is not filtered by loglevel option. Default output is to
+	stdout using hio. Level may be any of:
+	$(fold -w 80 -s <<<${(j., .)loglevelopts}).
 	
 	Options:
-	${(F)loglevelopts}
 	  -t TAG, --tagline TAG       Prefix output with the given tag.
 	  -y TYPE, --type TYPE        Message type if printed to stdout using hio. Default is
 	                              body with a modifier depending on the message level.
@@ -92,7 +105,7 @@ function lop() {
 	  -s, --syslog                Print to syslog instead of standard output. If
 	                              s and f are provided, the messages are logged
 	                              to syslog.
-	  --no-newline                Do not print a newline at the end.
+	  -n, --no-newline            Do not print a newline at the end.
 	----
 	$0 0.2.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
@@ -101,6 +114,7 @@ function lop() {
   [ $# -eq 0 ] && return
   [ "${setoutput}" = true ] && { _zshlib_lop_preconfigureOutput; return 0 }
   [ "${getoutput}" = true ] && { _zshlib_lop_printCurrentOutputConfiguration; return }
+  _zshlib_lop_pushMessagesToLevelArrays || return 10
 
   loglevel="${loglevel:-${_ZSHLIB_LOP_OPTIONS[-l]}}"
   [ -z "${loglevel}" ] && loglevel=debug

@@ -27,34 +27,34 @@ Describe 'lop'
 
  It 'prints debug message'
   msg='some message'
-  When call lop -d "${msg}"
+  When call lop -- -d "${msg}"
   The output should match pattern "*] ${msg}"
   The status should be success
  End
 
  It 'prints debug message if both debug and info message are given'
   msg='some message'
-  When call lop -d "${msg}" -i 'some other message here'
+  When call lop -- -d "${msg}" -i 'some other message here'
   The output should match pattern "*] ${msg}"
   The status should be success
  End
 
  It 'does not print debug if loglevel is set to info'
-  When call lop -l info -d 'some message'
+  When call lop -l info -- -d 'some message'
   The output should eq ''
   The status should eq 1
  End
 
  It 'can configure loglevel in advance'
   lop setoutput -l info tostdout
-  When call lop -d 'some message'
+  When call lop -- -d 'some message'
   The output should eq ''
   The status should eq 1
  End
 
  It 'does print info if loglevel is set to info'
   msg='some other message'
-  When call lop -l info -d 'some message' -i "${msg}"
+  When call lop -l info -- -d 'some message' -i "${msg}"
   The output should match pattern "*] ${msg}"
   The status should be success
  End
@@ -62,7 +62,7 @@ Describe 'lop'
  It 'prints tagline if one is given'
   msg='some message'
   tag='some tag'
-  When call lop -t "${tag}" -d "${msg}"
+  When call lop -t "${tag}" -- -d "${msg}"
   The output should match pattern "*${tag}] ${msg}"
   The status should be success
  End
@@ -70,7 +70,7 @@ Describe 'lop'
  It 'prints to file if told so'
   msg='some other message'
   tmpfile="`mktemp`"
-  When call lop -f "${tmpfile}" -d "${msg}" -i 'some other message'
+  When call lop -f "${tmpfile}" -- -d "${msg}" -i 'some other message'
   The contents of file "${tmpfile}" should match pattern "*] ${msg}"
   The status should be success
  End
@@ -78,7 +78,7 @@ Describe 'lop'
  It 'can configure output to file in advance'
   msg='some other message'
   tmpfile="`mktemp`"
-  run() { lop setoutput "${tmpfile}"; lop -d "${msg}" -i 'some other message'; }
+  run() { lop setoutput "${tmpfile}"; lop -- -d "${msg}" -i 'some other message'; }
   When call run
   The contents of file "${tmpfile}" should match pattern "*] ${msg}"
   The status should be success
@@ -86,14 +86,14 @@ Describe 'lop'
 
  It 'pushes message to syslog if asked for'
   msg='some other message'
-  When call lop -s -d "${msg}" -i 'some other message'
+  When call lop -s -- -d "${msg}" -i 'some other message'
   The variable syslogmsg should eq "${msg}"
   The status should be success
  End
 
  It 'can configure output to syslog in advance'
   msg='some other message'
-  run() { lop setoutput tosyslog; lop -d "${msg}" -i 'some other message'; }
+  run() { lop setoutput tosyslog; lop -- -d "${msg}" -i 'some other message'; }
   When call run
   The variable syslogmsg should eq "${msg}"
   The status should be success
@@ -120,8 +120,14 @@ Describe 'lop'
  End
 
  It 'returns one if all messages are filtered'
-  When call lop -l error -i 'Some info message' -n 'Some notice message'
+  When call lop -l error -- -i 'Some info message' -n 'Some notice message'
   The output should eq ''
   The status should eq 1
+ End
+
+ It 'returns ten if wrong level is supplied'
+  When call lop -- -z 'Some message'
+  The output should eq ''
+  The status should eq 10
  End
 End
