@@ -105,16 +105,34 @@ Describe 'lop'
   The status should be success
  End
 
- It 'returns syslog output if configured'
+ It 'returns syslog output if preconfigured'
   run() { lop setoutput tosyslog; lop getoutput }
   When call run
   The output should eq 'syslog'
   The status should be success
  End
 
- It 'returns filepath output if configured'
+ It 'returns syslog output if configured'
+  When call lop getoutput -s
+  The output should eq 'syslog'
+  The status should be success
+ End
+
+ It 'returns filepath output if preconfigured'
   run() { lop setoutput /some/path; lop getoutput }
   When call run
+  The output should eq '/some/path'
+  The status should be success
+ End
+
+ It 'returns filepath output if configured'
+  When call lop getoutput -f /some/path
+  The output should eq '/some/path'
+  The status should be success
+ End
+
+ It 'returns output regardless of other arguments if called with getoutput'
+  When call lop getoutput -f /some/path -- -i 'Some message'
   The output should eq '/some/path'
   The status should be success
  End

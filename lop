@@ -63,8 +63,8 @@ _zshlib_lop_preconfigureOutput() {
 
 _zshlib_lop_printCurrentOutputConfiguration() {
   local output=stdout
-  [ -n "${_ZSHLIB_LOP_OPTIONS[-f]}" ] && output="${_ZSHLIB_LOP_OPTIONS[-f]}"
-  [ "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ] && output=syslog
+  [ -n "${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}" ] && output="${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}"
+  [[ "${syslog}" = true || "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ]] && output=syslog
   print -- "${output}"
 }
 
@@ -86,7 +86,7 @@ function lop() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
-	  $0 getoutput
+    $0 getoutput [options] [-- (<level> <message>)...]
 	  $0 [options] -- (<level> <message>)...
 	
 	In the first form preconfigure the output for all subsequent calls. In the
