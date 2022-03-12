@@ -69,7 +69,7 @@ function config() {
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
   _DIR="${0:A:h}"
-  whence getPrefDir > /dev/null || source "${_DIR}/getPrefDir"
+  whence getPrefDir >&! /dev/null || source "${_DIR}/getPrefDir"
   config "$@"
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
   config "$@"

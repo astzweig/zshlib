@@ -110,7 +110,7 @@ function _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID() {
 
 function _zshlib_askUserModuleQuestions_answerQuestionFromCacheIfGiven() {
   local func=$1 cachekeys=()
-  [ -x "${cache}" ] || whence ${cache} 2> /dev/null || { $func; return 0 }
+  [ -x "${cache}" ] || whence ${cache} >&! /dev/null || { $func; return 0 }
   _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID "${mod}" "${questionID}"
   value="`${cache} read "${cachekeys[@]}"`"
   if [ -z "${value}" ]; then
