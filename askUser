@@ -7,6 +7,7 @@ function _zshlib_askUser_info() {
   [ -z "${defaulthint}" ] && prompt="${prompt} "
   while true; do
     hio -n ${defaulthint} -- body:quest "${prompt}"
+    stty echo 2> /dev/null
     read -u 0 ${passwordOption}
     [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
     if [ -n "${REPLY}" ]; then
@@ -21,6 +22,7 @@ function _zshlib_askUser_confirm() {
   [ "${n}" = true ] && answerChoices+=(N) || answerChoices+=(n)
   while true; do
     hio -n -a "[${(j./.)answerChoices}] " -- body:quest "${prompt}"
+    stty echo 2> /dev/null
     read -u 0 -k
     REPLY="${REPLY//[^A-Za-z]/}"
     if [ -n "${REPLY}" ]; then
@@ -46,6 +48,7 @@ function _zshlib_askUser_choose() {
   [ "${#choices}" -lt 1 ] && return
   [ -z "${defaulthint}" ] && prompt="${prompt} "
   hio ${defaulthint} -- body:quest "${prompt}"
+  stty echo 2> /dev/null
   select choice in "${choices[@]}"; do
     if [ -n "${choice}" ]; then
       REPLY="${choice}"
@@ -64,7 +67,8 @@ function askUser() {
 	
 	Ask user for input showing the given <prompt>. The input type can be modified
 	using the options. All input is stored in \$REPLY for scalars and \$reply for
-	arrays.
+	arrays. If stdin is connected to a terminal, this command turns echo mode on
+	and in all cases resets the mode to the previous state at the end.
 	
 	Commands:
 	  info     Ask the user a question with an undefined range of answers. If a
@@ -99,6 +103,7 @@ function askUser() {
   REPLY=
   local defaulthint=
   [ -n "${default}" ] && defaulthint=(-a "[default: ${default}] ")
+  trap "stty $(stty -g) 2> /dev/null" INT TERM EXIT
   if [ "${info}" = true ]; then
     _zshlib_askUser_info
   elif [ "${confirm}" = true ]; then
