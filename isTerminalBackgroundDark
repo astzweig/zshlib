@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
 # Based on https://gist.github.com/blueyed/c8470c2aad3381c33ea3
-declare -g _ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS=
+declare -gx _ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS=
 
 function isTerminalBackgroundDark() {
   test -t 1 || return 10
