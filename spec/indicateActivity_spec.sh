@@ -13,7 +13,7 @@ End
 
 Describe 'indicateActivity'
     output="`tput setaf 255`➔ `tput sgr0; tput setaf 8; tput setaf 255`Some message`tput sgr0;tput civis; tput cnorm``tput setaf 8`done"$'\n'`tput sgr0`
-    fileoutput='*] ➔ Some message...*] failed'
+    fileoutput='*] ➔ Some message*] failed'
 
   task() {}
   failing_task() { return 1 }
@@ -45,6 +45,6 @@ Describe 'indicateActivity'
   It 'does print something'
     lop() { [[ $1 = getoutput ]] && echo stdout || print -n -- "${@[-1]}" }
     When call indicateActivity -- task 'Some message'
-    The output should eq 'Some message...done'
+    The output should eq 'Some messagedone'
   End
 End

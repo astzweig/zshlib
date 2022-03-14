@@ -20,14 +20,14 @@ function indicateActivity() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  local msgArgs result resultStyle resultMsg output
+  local msgArgs result resultStyle resultMsg output newlineArg
   test -z ${msg} && return 10
 
   msgArgs=(${${:--i}:^^msg})
-  test -t 1 || msgArgs[-1]+=...
-
   output="`lop getoutput -- ${msgArgs}`"
-  lop -n -y ${active} -- ${msgArgs}
+  [ -t 1 -a "$output" = stdout ] && { newlineArg=-n }
+
+  lop ${newlineArg} -y ${active} -- ${msgArgs}
   result=$?
 
   if [[ -t 1 && $output = stdout && $result -eq 0 ]]; then
