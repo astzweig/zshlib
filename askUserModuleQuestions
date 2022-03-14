@@ -111,7 +111,7 @@ function _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID() {
 function _zshlib_askUserModuleQuestions_answerQuestionFromCacheIfGiven() {
   local func=$1 cachekeys=()
   [ -x "${cache}" ] || whence ${cache} >&! /dev/null || { $func; return 0 }
-  _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID "${mod}" "${questionID}"
+  _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID "${modShort}" "${questionID}"
   value="`${cache} read "${cachekeys[@]}"`"
   if [ -z "${value}" ]; then
     $func
@@ -193,8 +193,9 @@ function askUserModuleQuestions() {
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
   local -A answers
-  local mod
-  for mod in ${module}; do
+  local mod modShort moduleShortNames
+  moduleShortNames=(${(f)"$(abbreviatePaths ${module})"})
+  for mod modShort in ${module:^moduleShortNames}; do
     local -A questions=()
     _zshlib_askUserModuleQuestions_populateQuestionsWithModuleRequiredInformation
     _zshlib_askUserModuleQuestions_answerQuestionsFromCacheOrAskUser
