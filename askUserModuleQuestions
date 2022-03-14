@@ -115,7 +115,9 @@ function _zshlib_askUserModuleQuestions_answerQuestionFromCacheIfGiven() {
   value="`${cache} read "${cachekeys[@]}"`"
   if [ -z "${value}" ]; then
     $func
-    [ "${no_update}" != true ] && ${cache} write "${value}" "${cachekeys[@]}"
+    if [[ ${no_update} != true && (${save_password} = true || ! $questionID =~ password) ]]; then
+      ${cache} write "${value}" "${cachekeys[@]}"
+    fi
   fi
   return 0
 }
@@ -150,6 +152,7 @@ function askUserModuleQuestions() {
 	                                 will not be asked. Otherwise the user answer
 	                                 will be told to cache afterwards. Cache cmd
 	                                 must implement cache interface as described below.
+	  -p, --save-passwords           Do store password values in cache.
 	  -x, --no-update                Do not write user answers to cache. Useful
 	                                 if answers were prewritten in cache (e.g. like
 	                                 a config).
