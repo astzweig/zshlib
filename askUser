@@ -7,8 +7,9 @@ function _zshlib_askUser_info() {
   [ -z "${defaulthint}" ] && prompt="${prompt} "
   while true; do
     hio -n ${defaulthint} -- body:quest "${prompt}"
-    stty echo 2> /dev/null
+    stty echo 2> /dev/null; [ -t 0 -a -t 1 ] && tput cnorm
     read -u 0 ${passwordOption}
+    [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
     [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
     if [ -n "${REPLY}" ]; then
       [ -z "${validator}" ] || "${validator}" "${REPLY}" && break
@@ -22,8 +23,9 @@ function _zshlib_askUser_confirm() {
   [ "${n}" = true ] && answerChoices+=(N) || answerChoices+=(n)
   while true; do
     hio -n -a "[${(j./.)answerChoices}] " -- body:quest "${prompt}"
-    stty echo 2> /dev/null
+    stty echo 2> /dev/null; [ -t 0 -a -t 1 ] && tput cnorm
     read -u 0 -k
+    [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
     REPLY="${REPLY//[^A-Za-z]/}"
     if [ -n "${REPLY}" ]; then
       [[ "${REPLY}" =~ [Yy] ]] && return
@@ -48,7 +50,7 @@ function _zshlib_askUser_choose() {
   [ "${#choices}" -lt 1 ] && return
   [ -z "${defaulthint}" ] && prompt="${prompt} "
   hio ${defaulthint} -- body:quest "${prompt}"
-  stty echo 2> /dev/null
+  stty echo 2> /dev/null; [ -t 0 -a -t 1 ] && tput cnorm
   select choice in "${choices[@]}"; do
     if [ -n "${choice}" ]; then
       REPLY="${choice}"
@@ -56,6 +58,8 @@ function _zshlib_askUser_choose() {
     fi
     [ -n "${validator}" ] && "${validator}" "${REPLY}" && break
   done < /dev/stdin
+  [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
+  return 0
 }
 
 function askUser() {
@@ -69,6 +73,9 @@ function askUser() {
 	using the options. All input is stored in \$REPLY for scalars and \$reply for
 	arrays. If stdin is connected to a terminal, this command turns echo mode on
 	and in all cases resets the mode to the previous state at the end.
+	If both stdin and stdout are connected to a terminal, this command also shows
+	the cursor while the user is asked for input and hides it again afterwards if
+	the environment variable TERMINAL_CURSOR_HIDDEN is set and has a value.
 	
 	Commands:
 	  info     Ask the user a question with an undefined range of answers. If a
@@ -103,7 +110,7 @@ function askUser() {
   REPLY=
   local defaulthint=
   [ -n "${default}" ] && defaulthint=(-a "[default: ${default}] ")
-  trap "stty $(stty -g) 2> /dev/null" INT TERM EXIT
+  trap "stty $(stty -g 2> /dev/null) 2> /dev/null" INT TERM EXIT
   if [ "${info}" = true ]; then
     _zshlib_askUser_info
   elif [ "${confirm}" = true ]; then
