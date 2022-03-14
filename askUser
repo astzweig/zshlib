@@ -9,6 +9,7 @@ function _zshlib_askUser_info() {
     hio -n ${defaulthint} -- body:quest "${prompt}"
     stty echo 2> /dev/null; [ -t 0 -a -t 1 ] && tput cnorm
     read -u 0 ${passwordOption}
+    [ -n "${passwordOption}" ] && printf '\n'
     [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
     [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
     if [ -n "${REPLY}" ]; then
