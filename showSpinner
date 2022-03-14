@@ -28,7 +28,9 @@ function showSpinner() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] <func>
 	
-	Show a spinner at the current cursor position, while func is running.
+	Show a spinner at the current cursor position, while func is running. Hides
+	the cursor while the spinner is running and shows it again afterwards if the
+	environment variable TERMINAL_CURSOR_HIDDEN is not set or has no value.
 	
 	Options:
 	  -d TIME, --duration TIME   The duration that each spinner sequence shall be shown
@@ -45,8 +47,8 @@ function showSpinner() {
   if test -t 1; then
     (( duration >= 0.1 )) || return 10
     (( width >= 1 )) || return 11
-    tput civis; stty -echo
-    trap "tput cnorm; stty echo" INT TERM EXIT
+    trap '[ -t 1 ] && [ -z "${TERMINAL_CURSOR_HIDDEN}" ] && tput cnorm; stty '"$(stty -g 2> /dev/null)"'2> /dev/null' INT TERM EXIT
+    [ -t 1 ] && tput civis; stty -echo 2> /dev/null
     _zshlib_showSpinner_spin &
     local jobId=$!
   fi

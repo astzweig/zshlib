@@ -5,7 +5,7 @@ Describe 'showSpinner'
   stty() {}
   print() {}
   setVar() { func_called=true }
-  test() { builtin test "$1" = '-t' && return; builtin test "$@" }
+  test [() { builtin test "$1" = '-t' && return; builtin $0 "$@" }
   setVarSleep() { sleep 0.1; func_called=true }
   setup() { func_called=false }
   BeforeEach 'setup'
@@ -54,13 +54,20 @@ Describe 'showSpinner'
     The status should eq 0
   End
 
-  It 'shows input echoing after calling the func'
+  It 'does not show the cursor after calling the func if TERMINAL_CURSOR_HIDDEN env is set'
+    cursor_hidden=true
+    tput() { [ "$1" = cnorm -a "$func_called" = true ] && cursor_hidden=false; return 0 }
+    run() { TERMINAL_CURSOR_HIDDEN="true" showSpinner setVar }
+    When call run
+    The variable cursor_hidden should eq true
+    The status should eq 0
+  End
+
+  It 'reset input echoing after calling the func'
+    previousSettings=$(stty -g 2> /dev/null)
     input_echoing_hidden=true
     stty() {
-      while [ -n "$1" ]; do
-        [ "$1" = 'echo' -a "$func_called" = true ] && input_echoing_hidden=false
-        shift
-      done
+      [ "$*" = "${previousSettings}" ] && input_echoing_hidden=false
       return 0
     }
     When call showSpinner setVar
