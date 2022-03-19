@@ -80,16 +80,23 @@ Describe '_zshlib_hio_getModifier'
   End
 End
 
-Describe '_zshlib_hio_printPrefixSmybol'
+Describe '_zshlib_hio_printPrefixSymbol'
   Include ./hio
   It 'does nothing if no modifier given'
     modifier=
-    When call _zshlib_hio_printPrefixSmybol
+    When call _zshlib_hio_printPrefixSymbol
+    The output should eq ''
+  End
+
+  It 'does nothing if -p option is given'
+    modifier=li
+    no_prefix=true
+    When call _zshlib_hio_printPrefixSymbol
     The output should eq ''
   End
 End
 
-Describe '_zshlib_hio_printPrefixSmybol symbols'
+Describe '_zshlib_hio_printPrefixSymbol symbols'
   Include ./hio
   declare -A modifierStyles=()
   Parameters
@@ -107,7 +114,7 @@ Describe '_zshlib_hio_printPrefixSmybol symbols'
 
   It "prints $2 when modifier is $1"
     modifier=$1
-    When call _zshlib_hio_printPrefixSmybol
+    When call _zshlib_hio_printPrefixSymbol
     The output should eq "$2"
   End
 End

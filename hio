@@ -90,8 +90,9 @@ function _zshlib_hio_modifyStyle() {
   fi
 }
 
-function _zshlib_hio_printPrefixSmybol() {
+function _zshlib_hio_printPrefixSymbol() {
   [ -z "${modifier}" ] && return
+  test "${no_prefix}" = true && return
   local -A prefixSymbols=(li · warn ⚠ quest ➔ error ☠ add '' expl ↳ success ✓ failure ✗ done ✓ note !  active ➔)
   local prefixSymbol=${prefixSymbols[$modifier]}
   local modifierStyle=${modifierStyles[$modifier]} cmd=()
@@ -169,6 +170,7 @@ function hio() {
 	  -n, --no-newline            Do not print newline at the end of the messages.
 	  -a MSG, --addon MSG         Print MSG as same type with add modifier after the given messages.
 	  -e MSG, --explanation MSG   Print MSG as same type with expl modifier after the given message.
+	  -p, --no-prefix             Do not print a prefix symbol.
 	----
 	$0 0.2.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
@@ -187,7 +189,7 @@ function hio() {
   _zshlib_hio_getModifier
   _zshlib_hio_defineStyle
   _zshlib_hio_modifyStyle
-  _zshlib_hio_printPrefixSmybol
+  _zshlib_hio_printPrefixSymbol
   _zshlib_hio_printMessage
   [ -n "${addon}" ] && hio ${addonArgs} "${type}:add" " ${addon}"
   _zshlib_hio_printExplanation
