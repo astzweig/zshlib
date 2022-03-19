@@ -157,15 +157,15 @@ function hio() {
 	Usage:
 	  $0 examples
 	  $0 [options] [-e MSG...] [--] [(<type> <message>...)]
-
+	
 	In the first form prints example text illustrating the different text type
 	styles. In the second form prints messages according to predefined message
 	types and modifiers. All messages are passed through to pf. Message type can be
 	any of title, h1, h2 and body. Any type can be suffixed by a colon and one of
 	the following modifiers: sub, li, warn, quest, error, add, success, failure,
 	done, note, active.
-
-  Options:
+	
+	Options:
 	  -n, --no-newline            Do not print newline at the end of the messages.
 	  -a MSG, --addon MSG         Print MSG as same type with add modifier after the given messages.
 	  -e MSG, --explanation MSG   Print MSG as same type with expl modifier after the given message.

@@ -4,7 +4,7 @@
 function trim() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 <str>
-
+	
 	Output the given string with leading and trailing whitespace removed.
 	----
 	$0 0.1.0

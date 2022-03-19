@@ -86,7 +86,7 @@ function lop() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
-    $0 getoutput [options] [-- (<level> <message>)...]
+	  $0 getoutput [options] [-- (<level> <message>)...]
 	  $0 [options] -- (<level> <message>)...
 	
 	In the first form preconfigure the output for all subsequent calls. In the
