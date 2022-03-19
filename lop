@@ -39,16 +39,27 @@ function _zshlib_lop_prefixTimeAndTag() {
   hio -n -- body:add "[${args}] "
 }
 
+function _zshlib_lop_setTypeArg() {
+  [ ${#msgTypes} -gt 0 ] && { typeArg=${msgTypes[1]}; shift msgTypes }
+  [ -z "${typeArg}" ] && typeArg=${defaultTypes[$level]}
+}
+
 function _zshlib_lop_to_stdout() {
   # Log a message to stdout
   local -A defaultTypes=(debug body:add info body notice body:note warning body:warn error body:error critical body:error alert body:error panic body:error)
-  local typeArg= level= item= tagarg= newlineArgs=()
-  [ "${no_newline}" = true ] && newlineArgs=('-n')
+  local typeArg= level= item= lastItem= tagarg= newlineArg=
+  [ "${no_newline}" = true ] && newlineArg=-n
   for level in ${loglevels}; do
     if [ ${(P)#level} -gt 0 ]; then
+      local msgTypes=("${type[@]}") prefixArg=
       _zshlib_lop_prefixTimeAndTag
-      [ -n "$type" ] && typeArg=${type} || typeArg=${defaultTypes[$level]}
-      hio ${newlineArgs} -- ${typeArg} ${(j. .P)level}
+      for item in ${${(P)level}[1,-2]}; do
+        _zshlib_lop_setTypeArg
+        hio -n ${prefixArg} -- ${typeArg} "${item} "
+        prefixArg=-p
+      done
+      _zshlib_lop_setTypeArg
+      hio ${newlineArg} ${prefixArg} -- ${typeArg} ${${(P)level}[-1]}
     fi
   done
   return 0
@@ -87,7 +98,7 @@ function lop() {
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
 	  $0 getoutput [options] [-- (<level> <message>)...]
-	  $0 [options] -- (<level> <message>)...
+	  $0 [options] [-y TYPE...] -- (<level> <message>)...
 	
 	In the first form preconfigure the output for all subsequent calls. In the
 	second form prints stdout, syslog or the filepath if preconfigured.

@@ -105,6 +105,12 @@ Describe 'lop'
   The status should be success
  End
 
+ It 'accepts multiple types'
+  When call lop -y body:add -y body:warn -- -i 'some message'
+  The output should match pattern '*] some message'
+  The status should be success
+ End
+
  It 'returns syslog output if preconfigured'
   run() { lop setoutput tosyslog; lop getoutput }
   When call run
