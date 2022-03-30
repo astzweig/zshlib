@@ -71,6 +71,26 @@ Describe 'askUserModuleQuestions parseQuestionLine'
     The status should eq 15
   End
 
+  It 'can parse argument values containing colons'
+    declare -A questions
+    line='i: parameter-name=What parameter do you like? # some arg: some:value;arg2:value'
+    When call _zshlib_askUserModuleQuestions_parseQuestionLine
+    The output should eq ''
+    The line 1 of variable 'questions[parameter-name]' should eq 'What parameter do you like?'
+    The line 2 of variable 'questions[parameter-name]' should eq 'info;some arg:some:value;arg2:value'
+    The status should eq 0
+  End
+
+  It 'retains spaces in values containing colons'
+    declare -A questions
+    line='i: parameter-name=What parameter do you like? # some arg: some: value ;arg2:value'
+    When call _zshlib_askUserModuleQuestions_parseQuestionLine
+    The output should eq ''
+    The line 1 of variable 'questions[parameter-name]' should eq 'What parameter do you like?'
+    The line 2 of variable 'questions[parameter-name]' should eq 'info;some arg:some: value;arg2:value'
+    The status should eq 0
+  End
+
   It 'writes question type to outer questions associative array'
     declare -A questions
     line='s: parameter-name=What parameter do you like? # choose from: blue,red,light green; default: blue'

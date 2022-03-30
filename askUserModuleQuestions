@@ -33,8 +33,7 @@ function _zshlib_askUserModuleQuestions_parseQuestionLine() {
     for arg in ${arguments}; do
       arg=("${(s.:.)arg}")
       [ -z "${arg[1]}" ] && return 15
-      arg[1]="`trim "${arg[1]}"`"
-      arg[2]="`trim "${arg[2]}"`"
+      arg=("`trim "${arg[1]}"`" "`trim ${(j.:.)arg:1}`")
       questionType+=";${(j.:.)arg}"
     done
   fi
@@ -56,8 +55,8 @@ function _zshlib_askUserModuleQuestions_findQuestionArgInInstruction() {
   for arg in ${instructions}; do
     arg=("${(s.:.)arg}")
     [ "${#arg}" -lt 2 ] && continue
-    name="${arg[1]}"
-    value="${arg[2]}"
+    name=${arg[1]}
+    value=${(j.:.)arg:1}
     [ "${name}" != "${argNameToLookup}" ] && continue
     argValue="${value}"
     return
