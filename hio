@@ -99,7 +99,7 @@ function _zshlib_hio_printPrefixSymbol() {
   [ -z "${prefixSymbol}" ] && return
   [ -z "${modifierStyle}" ] && { _zshlib_hio_copyColor "${style}"; modifierStyle=${color} }
   [ -n "${modifierStyle}" ] && { previousModifierStyle=${modifierStyle} cmd=(-c ${modifierStyle})}
-  pf -r $cmd -- -n "${prefixSymbol} "
+  pf -r $cmd -- -n -- "${prefixSymbol} "
 }
 
 function _zshlib_hio_copyColor() {
@@ -113,7 +113,7 @@ function _zshlib_hio_printMessage() {
   local cmd=() newline=()
   [ -n "${style}" ] && cmd=(-c ${style})
   [ "${no_newline}" = true ] && newline=(-n)
-  pf -r $cmd -- ${newline} ${message}
+  pf -r $cmd -- ${newline} -- ${message}
 }
 
 function _zshlib_hio_printExplanation() {
