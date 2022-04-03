@@ -155,3 +155,22 @@ Describe 'lop'
   The status should eq 10
  End
 End
+
+Describe 'lop'
+ Parameters
+  output debug
+  output info
+  output notice
+  output warning
+  error error
+  error critical
+  error alert
+  error panic
+ End
+
+ It "prints $2 to $1"
+  When call lop -- -${2[1]} 'Some message'
+  The $1 should match pattern '* Some message'
+  The status should be success
+ End
+End

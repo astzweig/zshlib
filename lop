@@ -50,16 +50,19 @@ function _zshlib_lop_to_stdout() {
   local typeArg= level= item= lastItem= tagarg= newlineArg=
   [ "${no_newline}" = true ] && newlineArg=-n
   for level in ${loglevels}; do
+    if (( outputId < 10 )); then
+      [[ ${tostderr[(ie)$level]} -le ${#tostderr} ]] && outputId=2 || outputId=1
+    fi
     if [ ${(P)#level} -gt 0 ]; then
       local msgTypes=("${type[@]}") prefixArg=
-      _zshlib_lop_prefixTimeAndTag
+      _zshlib_lop_prefixTimeAndTag >&${outputId}
       for item in ${${(P)level}[1,-2]}; do
         _zshlib_lop_setTypeArg
-        hio -n ${prefixArg} -- ${typeArg} "${item} "
+        hio -n ${prefixArg} -- ${typeArg} "${item} " >&${outputId}
         prefixArg=-p
       done
       _zshlib_lop_setTypeArg
-      hio ${newlineArg} ${prefixArg} -- ${typeArg} ${${(P)level}[-1]}
+      hio ${newlineArg} ${prefixArg} -- ${typeArg} ${${(P)level}[-1]} >&${outputId}
     fi
   done
   return 0
@@ -91,6 +94,7 @@ function _zshlib_lop_pushMessagesToLevelArrays() {
 
 function lop() {
   local loglevelopts=() loglevels=(debug info notice warning error critical alert panic)
+  local tostderr=(${loglevels:4})
   local -a ${loglevels}
   printf -v loglevelopts '-%1$c/--%1$s' "${loglevels[@]}"
 
@@ -133,9 +137,11 @@ function lop() {
   if [ "${syslog}" = true -o "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ]; then
     _zshlib_lop_to_syslog
   else
-    local output=/dev/stdout
-    [ -n "${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}" ] && output="${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}"
-    _zshlib_lop_to_stdout > ${output}
+    integer outputId=1
+    if [[ -n ${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}} ]]; then
+      exec {outputId}>${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}
+    fi
+    _zshlib_lop_to_stdout
   fi
   return 0
 }
