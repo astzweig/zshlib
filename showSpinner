@@ -33,11 +33,14 @@ function showSpinner() {
 	environment variable TERMINAL_CURSOR_HIDDEN is not set or has no value.
 	
 	Options:
-	  -d TIME, --duration TIME   The duration that each spinner sequence shall be shown
-	                             in seconds. Must be greater or equal than 0.1. [default: $duration_default]
-	  -s CHARS, --spinner CHARS  The spinner characters. [default: $spinner_default]
-	  -w WIDTH, --width WIDTH    Amount of characters to use as a single sequence of
-	                             spinner. Must be greater or equal 1. [default: $width_default]
+	  -o VARNAME, --output VARNAME  Store the output of <func> to variable VARNAME.
+	  -d TIME, --duration TIME      The duration that each spinner sequence shall
+	                                be shown
+	                                in seconds. Must be greater or equal than 0.1. [default: $duration_default]
+	  -s CHARS, --spinner CHARS     The spinner characters. [default: $spinner_default]
+	  -w WIDTH, --width WIDTH       Amount of characters to use as a single
+	                                sequence of spinner. Must be greater or equal
+	                                1. [default: $width_default]
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
@@ -53,8 +56,14 @@ function showSpinner() {
     local jobId=$!
   fi
 
-  ${(s.,.)func} >&! /dev/null
-  result=$?
+  func=(${(s.,.)func})
+  if [[ -n $output ]]; then 
+    ${func} | read ${output}
+    result=${pipestatus[1]}
+  else
+    test -t 1 && ${func} >&! /dev/null || ${func}
+    result=$?
+  fi
 
   if test -t 1; then
     kill -s TERM $jobId

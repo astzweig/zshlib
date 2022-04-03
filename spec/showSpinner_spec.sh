@@ -129,4 +129,21 @@ Describe 'showSpinner'
     The output should eq ''
     The status should be success
   End
+
+  It 'does not catch any output of func if output is not to terminal'
+    outfunc() { echo "hallo" }
+    test() { builtin $0 "$@" }
+    When call showSpinner outfunc
+    The output should eq 'hallo'
+    The status should be success
+  End
+
+  It 'catches and stores any output of func if output is to terminal'
+    outfunc() { echo "hallo" }
+    out=
+    When call showSpinner -o out outfunc
+    The output should eq ''
+    The variable out should eq 'hallo'
+    The status should be success
+  End
 End
