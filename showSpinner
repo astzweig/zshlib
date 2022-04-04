@@ -58,7 +58,7 @@ function showSpinner() {
 
   func=(${(s.,.)func})
   if [[ -n $output ]]; then 
-    ${func} | read ${output}
+    ${func} 2>&1 | { typeset -g ${output}="$(cat)" }
     result=${pipestatus[1]}
   else
     test -t 1 && ${func} >&! /dev/null || ${func}

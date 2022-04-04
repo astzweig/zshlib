@@ -13,7 +13,7 @@ End
 
 Describe 'indicateActivity'
     output="`tput setaf 255`➔ `tput sgr0; tput setaf 8; tput setaf 255`Some message`tput sgr0;tput civis; tput cnorm``tput setaf 8`done"$'\n'`tput sgr0`
-    fileoutput='*] ➔ Some message*] failed'
+    fileoutput='*] ➔ Some message'
 
   task() {}
   failing_task() { return 1 }
@@ -42,9 +42,42 @@ Describe 'indicateActivity'
     The output should eq ''
   End
 
-  It 'does print something'
+  It 'does print something if output is to stdout but not to terminal'
     lop() { [[ $1 = getoutput ]] && echo stdout || print -n -- "${@[-1]}" }
     When call indicateActivity -- task 'Some message'
-    The output should eq 'Some messagedone'
+    The output should eq 'Some message'
+  End
+End
+
+Describe 'indicateActivity'
+  task() {}
+  showSpinner() { }
+  formattedOutput="Some message`tput cr; tput el`Some message"
+  message='Some message'
+  Parameters
+    filtered stdout terminal ''
+    filtered other terminal ''
+    filtered stdout other ''
+    filtered other other ''
+
+    unfiltered stdout terminal "${formattedOutput}"
+    unfiltered other terminal ''
+    unfiltered stdout other "${message}"
+    unfiltered other other ''
+  End
+
+  It "${${4:+does}:-does not} print message if lop output is $1, lop output is to ${2} and stdout goes to $3"
+    local FILTERED=$1 OUTPUT=$2 STDOUTTO=$3
+    test [() {
+      [[ $1 = -t && $2 = 1 ]] && { [[ $STDOUTTO = terminal ]]; return };
+      builtin $0 "$@"
+    }
+    lop () {
+      [[ $1 = getoutput ]] && { echo $OUTPUT; return };
+      local args=("$@")
+      [[ $FILTERED != filtered && $OUTPUT = stdout && $OUTPUT = stdout ]] && print -n -- "${@[-1]}"
+    }
+    When call indicateActivity -- task "${message}"
+    The output should eq "${4}"
   End
 End

@@ -20,7 +20,7 @@ function indicateActivity() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  local msgArgs result resultStyle resultMsg output newlineArg
+  local msgArgs result resultStyle resultMsg funcOutput output newlineArg
   test -z ${msg} && return 10
 
   msgArgs=(${${:--i}:^^msg})
@@ -30,21 +30,21 @@ function indicateActivity() {
   lop ${newlineArg} -y ${active} -- ${msgArgs}
   result=$?
 
-  if [[ -t 1 && $output = stdout && $result -eq 0 ]]; then
-    showSpinner ${func}
+  if test -t 1 && [[ $output = stdout && $result -eq 0 ]]; then
+    showSpinner --output funcOutput ${func}
     result=$?
     [[ $result -eq 0 ]] && resultStyle=${success} || resultStyle=${failure}
     tput cr; tput el;
     lop -y ${resultStyle} -- ${msgArgs}
-  elif [[ ! -t 1 && $output != syslog ]]; then
-    showSpinner ${func}
-    result=$?
-    [[ $result -eq 0 ]] && resultMsg=done || resultMsg=failed
-    lop -- -i ${resultMsg}
+
+    if [[ -n ${funcOutput} ]]; then
+      lop -- -d "Function output during run: ${funcOutput}"
+    fi
   else
     ${(s.,.)func}
     result=$?
   fi
+
   return $result
 }
 
