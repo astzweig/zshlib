@@ -44,7 +44,7 @@ function _zshlib_askUserModuleQuestions_parseQuestionLine() {
 }
 
 function _zshlib_askUserModuleQuestions_populateQuestionsWithModuleRequiredInformation() {
-  for line in ${(f)"$(${mod} show-questions)"}; do
+  for line in ${(f)"$(${mod} show-questions ${(kv)answers})"}; do
     _zshlib_askUserModuleQuestions_parseQuestionLine
   done
 }
@@ -136,7 +136,8 @@ function askUserModuleQuestions() {
 	
 	Ask human user questions on behalf of given <module>s. The process is as follows:
 	1. Query any given module for questions by calling them with their show-questions
-	subcommand.
+	subcommand. The show-questions subcommands must accept any number of key value
+	argument pairs, as it receives all answers of all previous modules.
 	2. Parse module output for questions as described below.
 	3. Ask user those questions.
 	4. Print answers to stdout.
