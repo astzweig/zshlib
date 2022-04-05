@@ -9,7 +9,7 @@ function isTerminalBackgroundDark() {
     local answer hexrgb brightness weights onebyte hexvalue weight
     if [ -t 0 ]; then
       trap "stty $(stty -g)" INT TERM EXIT
-      stty raw -echo min 0 time 1
+      stty raw -echo min 0 time 3
     fi
     print -n "\033]11;?\033\\"
     read -r answer
