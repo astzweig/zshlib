@@ -7,7 +7,7 @@ function _zshlib_askUser_info() {
   [ -z "${defaulthint}" ] && prompt="${prompt} "
   while true; do
     hio -n ${defaulthint} -- body:quest "${prompt}"
-    stty echo 2> /dev/null; [ -t 0 -a -t 1 ] && tput cnorm
+    [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
     read -u 0 ${passwordOption}
     [ -n "${passwordOption}" ] && printf '\n'
     [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
@@ -24,7 +24,7 @@ function _zshlib_askUser_confirm() {
   [ "${n}" = true ] && answerChoices+=(N) || answerChoices+=(n)
   while true; do
     hio -n -a "[${(j./.)answerChoices}] " -- body:quest "${prompt}"
-    stty echo 2> /dev/null; [ -t 0 -a -t 1 ] && tput cnorm
+    [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
     read -u 0 -k
     [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
     REPLY="${REPLY//[^A-Za-z]/}"
@@ -51,7 +51,7 @@ function _zshlib_askUser_choose() {
   [ "${#choices}" -lt 1 ] && return
   [ -z "${defaulthint}" ] && prompt="${prompt} "
   hio ${defaulthint} -- body:quest "${prompt}"
-  stty echo 2> /dev/null; [ -t 0 -a -t 1 ] && tput cnorm
+  [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
   select choice in "${choices[@]}"; do
     if [ -n "${choice}" ]; then
       REPLY="${choice}"
@@ -111,7 +111,10 @@ function askUser() {
   REPLY=
   local defaulthint=
   [ -n "${default}" ] && defaulthint=(-a "[default: ${default}] ")
-  trap "stty $(stty -g 2> /dev/null) 2> /dev/null" INT TERM EXIT
+  if [[ -t 0 ]]; then
+    traps add zshlib-askUser-reset-stty "stty $(stty -g)"
+    trap "traps call exit; traps remove zshlib-askUser-reset-stty" EXIT
+  fi
   if [ "${info}" = true ]; then
     _zshlib_askUser_info
   elif [ "${confirm}" = true ]; then
@@ -122,10 +125,12 @@ function askUser() {
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+  declare -A traps=()
   _DIR="${0:A:h}"
-  for c in hio pf isTerminalBackgroundDark; do
+  for c in hio pf traps isTerminalBackgroundDark; do
     whence $c >&! /dev/null || source "${_DIR}/$c"
   done
+  trap 'code=$?; traps call; return $code' INT TERM EXIT
   askUser "$@"
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
   askUser "$@"

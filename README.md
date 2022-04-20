@@ -47,13 +47,13 @@ Or if you want to autoload only specific commands:
 | trim | Remove leading and trailing whitespace from string. | [`docopts`][docopts][^docopts] | all |
 | loadModules | Find executable modules in module search paths and allow user to filter or inverse the list. | [`docopts`][docopts][^docopts] | all |
 | askUserModuleQuestions | Ask user questions on behalf of modules with possibility to cache (or store) answers for future calls, e.g. using config. | [`docopts`][docopts][^docopts] | all |
-| showSpinner | Show a loading animation during execution of a function. | [`docopts`][docopts][^docopts] | all |
-| askUser | Ask user for input. Supports questions, password, selections or confirmations. | `hio`[^zshlib], [`docopts`][docopts][^docopts] | all |
+| showSpinner | Show a loading animation during execution of a function. | `traps`[^zshlib], [`docopts`][docopts][^docopts] | all |
+| askUser | Ask user for input. Supports questions, password, selections or confirmations. | `hio`[^zshlib], `traps`[^zshlib], [`docopts`][docopts][^docopts] | all |
 | getPrefDir | Get system specific preferences directory. | [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
 | traps | A trap handler for zsh scripts. | [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
 | config | Config file writer and reader. | `getPrefDir`[^zshlib], `PlistBuddy`[^plistbuddy], [`docopts`][docopts][^docopts] | macOS, Linux, Windows Subsystem for Linux |
 | abbreviatePaths | Truncate the passed paths so that they are minimal in length and pairwise distinct. Useful to save the user long path specifications. | [`docopts`][docopts][^docopts] | all |
-| isTerminalBackgroundDark | Queries the terminal for its background color and returns zero if the color is rather dark or 1 otherwise. If the output is not connected to a terminal, code 10 will be returned. | - | all |
+| isTerminalBackgroundDark | Queries the terminal for its background color and returns zero if the color is rather dark or 1 otherwise. If the output is not connected to a terminal, code 10 will be returned. | `traps`[^zshlib] | all |
 
 
 [^zshlib]: A command of Zsh Lib (this library).
