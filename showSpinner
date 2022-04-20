@@ -50,11 +50,17 @@ function showSpinner() {
   if test -t 1; then
     (( duration >= 0.1 )) || return 10
     (( width >= 1 )) || return 11
-    trap '[ -t 1 ] && [ -z "${TERMINAL_CURSOR_HIDDEN}" ] && tput cnorm; stty '"$(stty -g 2> /dev/null)"'2> /dev/null' INT TERM EXIT
-    [ -t 1 ] && tput civis; stty -echo 2> /dev/null
+    traps add zshlib-showSpinner-reset-cursor 'test -z "${TERMINAL_CURSOR_HIDDEN}" && tput cnorm'
+    tput civis;
     _zshlib_showSpinner_spin &
     local jobId=$!
   fi
+
+  if test -t 0; then
+    traps add zshlib-showSpinner-reset-stty "stty $(stty -g)"
+    stty -echo
+  fi
+  trap 'traps call exit; traps remove zshlib-showSpinner-reset-cursor; traps remove zshlib-showSpinner-reset-stty' EXIT
 
   func=(${(s.,.)func})
   if [[ -n $output ]]; then 

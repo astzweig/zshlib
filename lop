@@ -148,7 +148,7 @@ function lop() {
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
   _DIR="${0:A:h}"
-  for c in hio pf isTerminalBackgroundDark; do
+  for c in hio pf traps isTerminalBackgroundDark; do
     whence $c >&! /dev/null || source "${_DIR}/$c"
   done
   lop "$@"
