@@ -1,0 +1,47 @@
+name: zshlib.zwc Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ v* ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Runs a set of commands using the runners shell
+      - name: Compile library with zcompile
+        shell: zsh {0}
+        run: zcompile -zU ./zshlib $(find . -type f -perm +u=x -maxdepth 1)
+
+      - name: Create Release Notes
+        shell: zsh {0}
+        run: awk -v start=0 '/## \[([[:digit:]]+\.?)+\] - [[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}/ { if(start == 0) start=1; else nextfile }; /\[[[:alpha:]]+\]:/ { if (start > 0) nextfile }; { if (start > 0) print };' ./CHANGELOG.md > ./RELEASE_NOTES.md
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body_path: ./RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+
+      - name: Upload zsh word code
+        id: upload-zwc
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
+          asset_path: ./zshlib.zwc
+          asset_name: zshlib.zwc
+          asset_content_type: application/octet-stream
