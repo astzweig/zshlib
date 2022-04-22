@@ -1,10 +1,11 @@
 Describe 'isTerminalBackgroundDark'
   test() { [ "$1" = '-t' ] && return; builtin test "$@" }
+  stty() {}
 
   It 'returns code 10 if output is not connected to terminal'
     test() { builtin test "$@" }
     When call isTerminalBackgroundDark
-    The status should eq 10
+    The status should eq 11
   End
 
   It 'returns failure if color is white'
