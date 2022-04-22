@@ -1,0 +1,37 @@
+#!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
+
+function checkCommands() {
+  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	Usage: $0 [options] [--] [<c2c>...]
+	
+	Check if the given commands (to check, hence c2c) are available for the
+	current shell. If not returns error. If message option is given, the message
+	is logged as an error using lop. Additionally if there exists an outer
+	associative array called cmds, the command stored under the missing command's
+	name is provided to the message too.
+	
+	Options:
+	  -m MSG, --msg MSG  The error message to print, if one command is not
+	                     available. Use %1\$s in the message to get the missing
+	                     command and a %2\$s to get a potentially existing comment
+	                     provided by an outer associative array called cmds..
+	----
+	$0 0.1.0
+	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
+	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
+	USAGE`"
+  local cmd= comment=
+  for cmd in ${c2c}; do
+    whence ${cmd} >&! /dev/null && continue
+    if [[ -n $msg ]]; then
+      [[ -n ${cmds[$cmd]} ]] && comment=${cmds[$cmd]}
+      lop -- -e "$(printf ${msg} ${cmd} ${comment})"
+    fi
+    return 10
+  done
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
+  checkCommands "$@"
+fi
