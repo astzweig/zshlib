@@ -54,13 +54,14 @@ function showSpinner() {
     tput civis;
     _zshlib_showSpinner_spin &
     local jobId=$!
+    traps add zshlib-showSpinner-kill-job "test -t 1 && kill -s TERM $jobId >&! /dev/null && wait $jobId"
   fi
 
   if test -t 0; then
     traps add zshlib-showSpinner-reset-stty "stty $(stty -g)"
     stty -echo
   fi
-  trap 'traps call exit; traps remove zshlib-showSpinner-reset-cursor; traps remove zshlib-showSpinner-reset-stty' EXIT
+  trap 'traps call exit; traps remove zshlib-showSpinner-reset-cursor; traps remove zshlib-showSpinner-reset-stty; traps remove zshlib-showSpinner-kill-job' EXIT
 
   func=(${(s.,.)func})
   if [[ -n $output ]]; then 
@@ -71,10 +72,6 @@ function showSpinner() {
     result=$?
   fi
 
-  if test -t 1; then
-    kill -s TERM $jobId
-    wait $jobId
-  fi
   return $result
 }
 

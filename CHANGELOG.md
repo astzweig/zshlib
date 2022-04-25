@@ -5,11 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+Nothing here yet.
+
+## [v1.0.1] - 2022-04-25
 ## Fixed
 - Changed parsing semantics of isTerminalBackgroundDark to handle special chars
-  in Terminal answer to xterm control sequence.
+  in Terminal answer to xterm control sequence. Those were causing parsing errors
+  previously.
+- Add trap for killing the background job while showing spinner dots in showSpinner
+  as before they'd keep spinning even after forcefully quitting the script.
+- Fixed wrong date in CHANGELOG.md regarding release v1.0.0.
 
-## [v1.0.0] - 2014-05-31
+## [v1.0.0] - 2022-04-21
 First major release.
 ### Added
 - Useful functions for logging, output and activity indication. Take a look at
@@ -18,6 +25,7 @@ First major release.
 
 [Unreleased]: https://github.com/astzweig/zshlib/compare/v1.0.0...HEAD
 [v1.0.0]: https://github.com/astzweig/zshlib/releases/tag/v1.0.0
+[v1.0.1]: https://github.com/astzweig/zshlib/releases/tag/v1.0.1
 [Releases]: https://github.com/astzweig/zshlib/releases
 [README.md]: https://github.com/astzweig/zshlib
 [what's included]: https://github.com/astzweig/zshlib#whats-included
