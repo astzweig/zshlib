@@ -65,8 +65,12 @@ function showSpinner() {
 
   func=(${(s.,.)func})
   if [[ -n $output ]]; then 
-    ${func} 2>&1 | { typeset -g ${output}="$(cat)" }
-    result=${pipestatus[1]}
+    coproc cat
+    ${func} >&p 2>&1
+    print -p
+    result=$?
+    read -p ${output}
+    coproc exit
   else
     test -t 1 && ${func} >&! /dev/null || ${func}
     result=$?

@@ -14,6 +14,8 @@ Nothing here yet.
   previously.
 - Add trap for killing the background job while showing spinner dots in showSpinner
   as before they'd keep spinning even after forcefully quitting the script.
+- Run functions of indicateActivity (or showSpinner) in the current shell context
+  instead of a subshell.
 - Fixed wrong date in CHANGELOG.md regarding release v1.0.0.
 
 ## [v1.0.0] - 2022-04-21
