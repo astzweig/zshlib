@@ -7,14 +7,18 @@ function isTerminalBackgroundDark() {
   test -t 0 || return 10
   test -t 1 || return 11
   if [ -z "${_ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS}" ]; then
-    local answer hexrgb brightness weights onebyte hexvalue weight
+    local answer hexrgbstr hexrgb brightness weights onebyte hexvalue weight
     traps add zshlib-isTerminalBackgroundDark-reset-stty "stty $(stty -g)"
     trap "traps call exit; traps remove zshlib-isTerminalBackgroundDark-reset-stty" EXIT
-    stty raw -echo min 0 time 1
+    stty raw -echo min 0
     print -n "\033]11;?\033\\"
-    read -r answer
-    [[ ${#answer} -gt 0 ]] || return 0
-    hexrgb=(${(s./.)"${${answer#*:}//[^rg:\/A-Fa-f0-9]/}"}) weights=(.241 .691 .068) onebyte=256
+    while true; do
+      read -rs -t 0.2 -k 1 -u 0 || break
+      answer+=$REPLY
+    done
+    [[ ${#answer} -eq 24 ]] || return 0
+    hexrgbstr=${answer:(-15):(-1)}
+    hexrgb=(${(s./.)hexrgbstr}) weights=(.241 .691 .068) onebyte=256
     integer brightness=0
     for hexvalue weight in ${hexrgb:^weights}; do
       (( brightness+=0x$hexvalue / onebyte * weight ))
