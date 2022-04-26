@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Nothing here yet.
 
-## [v1.0.1] - 2022-04-25
-## Fixed
+## [v1.0.1] - 2022-04-26
+### Added
+- Validators of askUser can now habe a comma separated list of arguments given
+  to them additionally to the user reply.
+
+### Fixed
 - Changed parsing semantics of isTerminalBackgroundDark to handle special chars
   in Terminal answer to xterm control sequence. Those were causing parsing errors
   previously.

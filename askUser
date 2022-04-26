@@ -13,7 +13,7 @@ function _zshlib_askUser_info() {
     [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
     [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
     if [ -n "${REPLY}" ]; then
-      [ -z "${validator}" ] || "${validator}" "${REPLY}" && break
+      [ -z "${validator}" ] || ${(s.,.)validator} ${REPLY} && break
     fi
   done
 }
@@ -57,7 +57,7 @@ function _zshlib_askUser_choose() {
       REPLY="${choice}"
       break
     fi
-    [ -n "${validator}" ] && "${validator}" "${REPLY}" && break
+    [ -n "${validator}" ] && ${(s.,.)validator} ${REPLY} && break
   done < /dev/stdin
   [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
   return 0
