@@ -5,8 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+Nothing here yet.
+
+## [v2.0.0] - 2022-04-28
 ### Added
 - askUser asks for password confirmation now, to prevent typo errors.
+
+### Changed
+- indicateActivity now accepts arguments as arguments instead of a
+  comma separated list.
 
 ## [v1.0.1] - 2022-04-26
 ### Added
@@ -33,6 +40,7 @@ First major release.
 [Unreleased]: https://github.com/astzweig/zshlib/compare/v1.0.0...HEAD
 [v1.0.0]: https://github.com/astzweig/zshlib/releases/tag/v1.0.0
 [v1.0.1]: https://github.com/astzweig/zshlib/releases/tag/v1.0.1
+[v2.0.0]: https://github.com/astzweig/zshlib/releases/tag/v2.0.0
 [Releases]: https://github.com/astzweig/zshlib/releases
 [README.md]: https://github.com/astzweig/zshlib
 [what's included]: https://github.com/astzweig/zshlib#whats-included

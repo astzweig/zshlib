@@ -41,7 +41,7 @@ Describe 'showSpinner'
   It 'allows argument passing to func'
     args=
     myfunc() { args=("$@") }
-    When call showSpinner myfunc,-c,hallo
+    When call showSpinner -- myfunc -c hallo
     The variable args should eq '-c hallo'
     The variable 'args[1]' should eq '-c'
   End

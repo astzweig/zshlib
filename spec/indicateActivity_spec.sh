@@ -5,7 +5,7 @@ Describe 'indicateActivity misuse'
   End
 
   It "shows help if $1"
-    When call indicateActivity ${(s.,.)2}
+    When call indicateActivity ${2}
     The error should match pattern 'error:*Usage: indicateActivity*'
     The status should be failure
   End
@@ -19,32 +19,32 @@ Describe 'indicateActivity'
   failing_task() { return 1 }
 
   It 'returns return code of func'
-    When call indicateActivity -- failing_task 'Some message'
+    When call indicateActivity -- 'Some message' failing_task
     The output should match pattern "$fileoutput"
     The status should eq 1
   End
 
   It 'does not print anything if lop filters everything'
     lop() { return 1 }
-    When call indicateActivity -- task 'Some message'
+    When call indicateActivity -- 'Some message' task
     The output should eq ''
   End
 
   It 'does not print anything if lop output is to file'
     lop() { [[ $1 = getoutput ]] && echo /dev/null }
-    When call indicateActivity -- task 'Some message'
+    When call indicateActivity -- 'Some message' task
     The output should eq ''
   End
 
   It 'does not print anything if lop output is to syslog'
     lop() { [[ $1 = getoutput ]] && echo syslog }
-    When call indicateActivity -- task 'Some message'
+    When call indicateActivity -- 'Some message' task
     The output should eq ''
   End
 
   It 'does print something if output is to stdout but not to terminal'
     lop() { [[ $1 = getoutput ]] && echo stdout || print -n -- "${@[-1]}" }
-    When call indicateActivity -- task 'Some message'
+    When call indicateActivity -- 'Some message' task
     The output should eq 'Some message'
   End
 End
@@ -77,7 +77,7 @@ Describe 'indicateActivity'
       local args=("$@")
       [[ $FILTERED != filtered && $OUTPUT = stdout && $OUTPUT = stdout ]] && print -n -- "${@[-1]}"
     }
-    When call indicateActivity -- task "${message}"
+    When call indicateActivity -- "${message}" task
     The output should eq "${4}"
   End
 End

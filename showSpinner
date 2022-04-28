@@ -26,11 +26,13 @@ function showSpinner() {
   setopt localoptions nomonitor
   local duration_default=0.2 width_default=3 spinner_default='.  .. ...   '
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
-	Usage: $0 [options] <func>
+	Usage: $0 [options] [--] <func>...
 	
 	Show a spinner at the current cursor position, while func is running. Hides
 	the cursor while the spinner is running and shows it again afterwards if the
 	environment variable TERMINAL_CURSOR_HIDDEN is not set or has no value.
+	Any func argument but the first will be passed as an argument to that first
+	func.
 	
 	Options:
 	  -o VARNAME, --output VARNAME  Store the output of <func> to variable VARNAME.
@@ -63,12 +65,11 @@ function showSpinner() {
   fi
   trap 'traps call exit; traps remove zshlib-showSpinner-reset-cursor; traps remove zshlib-showSpinner-reset-stty; traps remove zshlib-showSpinner-kill-job' EXIT
 
-  func=(${(s.,.)func})
   if [[ -n $output ]]; then 
     coproc cat
     ${func} >&p 2>&1
-    print -p
     result=$?
+    print -p
     read -p ${output}
     coproc exit
   else

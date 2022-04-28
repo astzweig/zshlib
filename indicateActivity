@@ -3,12 +3,12 @@
 
 function indicateActivity() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
-	Usage: $0 [options] [--] <func> <msg>...
+	Usage: $0 [options] [--] <msg> <func>... 
 	
 	Show a spinner during run of <func> if the output is connected to a terminal
-	else print three dots and done or failed afterwards. Print <msg>s using lop
-	with info level. <func> is a comma separated list of a command and further
-	args.
+	else print three dots and done or failed afterwards. Print <msg> using lop
+	with info level. Any func argument but the first will be passed as an argument
+	to that first func.
 	
 	Options:
 	  -a STYLE, --active STYLE   hio message type during run of FUNC. [default: body:active]
@@ -31,7 +31,7 @@ function indicateActivity() {
   result=$?
 
   if test -t 1 && [[ $output = stdout && $result -eq 0 ]]; then
-    showSpinner --output funcOutput ${func}
+    showSpinner --output funcOutput -- ${func}
     result=$?
     [[ $result -eq 0 ]] && resultStyle=${success} || resultStyle=${failure}
     tput cr; tput el;
@@ -41,7 +41,7 @@ function indicateActivity() {
       lop -- -d "Function output during run: ${funcOutput}"
     fi
   else
-    ${(s.,.)func}
+    ${func}
     result=$?
   fi
 
