@@ -2,14 +2,23 @@
 # vi: set expandtab ft=zsh tw=80 ts=2
 
 function _zshlib_askUser_info() {
-  local passwordOption=
+  local passwordOption= firstReply=
   [ "${password}" = true ] && passwordOption='-s'
   [ -z "${defaulthint}" ] && prompt="${prompt} "
   while true; do
-    hio -n ${defaulthint} -- body:quest "${prompt}"
-    [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
-    read -u 0 ${passwordOption}
-    [ -n "${passwordOption}" ] && printf '\n'
+    while true; do
+      hio -n ${defaulthint} -- body:quest "${prompt}"
+      [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
+      read -u 0 ${passwordOption}
+      [[ -z "${passwordOption}" ]] && break
+
+      firstReply=$REPLY REPLY=
+      printf '\n'
+      hio -n -- body:expl "${prompt}"
+      read -u 0 ${passwordOption}
+      printf '\n'
+      [[ ${firstReply} = ${REPLY} ]] && break
+    done
     [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
     [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
     if [ -n "${REPLY}" ]; then
