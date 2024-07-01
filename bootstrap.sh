@@ -227,6 +227,6 @@ function main() {
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == cmdarg ]]; then
 	_DIR="${0:A:h}"
-	_CMD_NAME=$0
+	_CMD_NAME=${0:t}
 	main "$@"
 fi
