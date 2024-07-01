@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Nothing here yet.
 
+## [v2.0.1] - 2024-07-01
+### Added
+- Add bootstrap script. Now you can automatically install the library using a
+  single command.
+
 ## [v2.0.0] - 2022-04-28
 ### Added
 - askUser asks for password confirmation now, to prevent typo errors.
