@@ -20,7 +20,6 @@ function getSystemOrUserLibPath() {
 		ensureDirectory /usr/local/share/zsh root:admin 755
 		ensureDirectory $libDir root:admin 755
 	else
-		[[ -z $HOME ]] && return 10
 		libDir="$HOME/.zshfn"
 		ensureDirectory $libDir $(id -un):staff u=rwx,g=rx
 	fi
@@ -51,12 +50,28 @@ function compileZSHLib() {
 	print 'done'
 }
 
+function createEnvFile() {
+	local envFile=$1 owner=$2 permission=$3
+	[[ -f $envFile ]] && return
+	touch $envFile
+	ensureOwnerAndPermission $envFile $owner $permission
+}
+
+function modifyFpath() {
+	local envFile=/etc/zshenv owner='root:wheel'
+	[[ $(id -un) != "root" ]] && { envFile=$HOME/.zshenv owner=$((id -un)):staff }
+	createEnvFile
+	cat $envFile 2> /dev/null | grep $libDir >&! /dev/null && return
+	print -- "fpath+=($libDir)" >> $envFile
+}
+
 function installZSHLib() {
 	local libDir
 	getZSHLibArchive || return $((10 * $?))
 	changeToZSHLibFolder || return $((20 * $?))
 	getSystemOrUserLibPath || return $((30 * $?))
 	compileZSHLib
+	modifyFpath
 }
 
 function isDebug() {
@@ -103,15 +118,21 @@ function configureTerminal() {
 	fi
 }
 
+function checkUserPrerequisites() {
+	[[ $(id -un) == 'root' ]] && return 0
+	[[ -d $HOME ]] || return 10
+}
+
 function main() {
 	local traps=() tmpdir=
 	local -A colors=() errColors=()
 
 	configureTerminal
+	checkUserPrerequisites || { printError 'Home variable not set. Aborting.'; return 10 }
 	changeToTemporaryFolder
 	trap ${(j.;.)traps} INT TERM EXIT
 
-	whence curl &> /dev/null || { printError 'This script needs curl. Aborting.'; return 10 }
+	whence curl &> /dev/null || { printError 'This script needs curl. Aborting.'; return 11 }
 	installZSHLib
 
 	[ -t 1 ] && tput cnorm
