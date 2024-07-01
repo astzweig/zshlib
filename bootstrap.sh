@@ -124,7 +124,7 @@ function checkUserPrerequisites() {
 }
 
 function main() {
-	local traps=() tmpdir=
+	local traps=('[ -t 1 ] && tput cnorm') tmpdir=
 	local -A colors=() errColors=()
 
 	configureTerminal
@@ -135,7 +135,6 @@ function main() {
 	whence curl &> /dev/null || { printError 'This script needs curl. Aborting.'; return 11 }
 	installZSHLib
 
-	[ -t 1 ] && tput cnorm
 	popd -q
 }
 
