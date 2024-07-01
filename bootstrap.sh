@@ -8,7 +8,7 @@ function getZSHLibArchive() {
 	[[ -f ${zipPath} ]] && unzip ${zipPath} &> /dev/null && rm ${zipPath}
 }
 
-function changeToZSHLibFolder() {
+function changeToUnzipedFolder() {
 	[[ -d ./zshlib-main ]] || { printError 'Could not download zshlib. Aborting.'; return 10 }
 	pushd -q ./zshlib-main
 }
@@ -67,11 +67,12 @@ function modifyFpath() {
 function installZSHLib() {
 	local libDir zshlibPath
 	getZSHLibArchive || return $((10 * $?))
-	changeToZSHLibFolder || return $((20 * $?))
+	changeToUnzipedFolder || return $((20 * $?))
 	getSystemOrUserLibPath || return $((30 * $?))
 	zshlibPath=$libDir/astzweig_zshlib.zwc
 	compileZSHLib
 	modifyFpath
+  printSuccess "All done."
 }
 
 function isDebug() {
@@ -84,11 +85,6 @@ function printSuccess() {
 
 function printError() {
 	print "${errColors[red]}${*}${errColors[reset]}" >&2
-}
-
-function printFailedWithError() {
-	print "${colors[red]}failed.${colors[reset]}"
-	print "$*" >&2
 }
 
 function defineColors() {
