@@ -60,7 +60,7 @@ function createEnvFile() {
 function modifyFpath() {
 	local envFile=/etc/zshenv owner='root:wheel'
 	[[ $(id -un) != "root" ]] && { envFile=$HOME/.zshenv owner=$((id -un)):staff }
-	createEnvFile
+	createEnvFile $envFile $owner u=rw,g=r
 	cat $envFile 2> /dev/null | grep $libDir >&! /dev/null && return
 	print -- "fpath+=($libDir)" >> $envFile
 }
