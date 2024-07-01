@@ -38,7 +38,6 @@ function ensureOwnerAndPermission() {
 }
 
 function compileZSHLib() {
-	local zshlibPath=$libDir/astzweig_zshlib.zwc
 	if [[ -f $zshlibPath ]]; then
 		print 'Updating zshlib'
 		rm -f $zshlibPath
@@ -62,14 +61,15 @@ function modifyFpath() {
 	[[ $(id -un) != "root" ]] && { envFile=$HOME/.zshenv owner=$((id -un)):staff }
 	createEnvFile $envFile $owner u+rw,g+r
 	cat $envFile 2> /dev/null | grep $libDir >&! /dev/null && return
-	print -- "fpath+=($libDir)" >> $envFile
+	print -- "fpath+=($zshlibPath)" >> $envFile
 }
 
 function installZSHLib() {
-	local libDir
+	local libDir zshlibPath
 	getZSHLibArchive || return $((10 * $?))
 	changeToZSHLibFolder || return $((20 * $?))
 	getSystemOrUserLibPath || return $((30 * $?))
+	zshlibPath=$libDir/astzweig_zshlib.zwc
 	compileZSHLib
 	modifyFpath
 }
