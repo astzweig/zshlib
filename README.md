@@ -2,6 +2,12 @@
 Awesome functions that make writing Z shell CLI applications easier.
 
 ## Install
+To install this library system wide run:
+
+```zsh
+/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/astzweig/zshlib/main/bootstrap.sh)"
+```
+
 To use this library in you own project add it as a [`git-submodule`][git-submodule]
 to your repository.
 
