@@ -41,12 +41,12 @@ function compileZSHLib() {
 	local zshlibPath=$libDir/astzweig_zshlib.zwc
 	if [[ -f $zshlibPath ]]; then
 		print 'Updating zshlib'
-		rm $zshlibPath
+		rm -f $zshlibPath
 	else
 		print 'Installing zshlib'
 	fi
 	zcompile -z -U ${zshlibPath} $(find . -type f -perm +u=x -maxdepth 1)
-	chmod ugo=r ${zshlibPath}
+	chmod ugo+r ${zshlibPath}
 	print 'done'
 }
 
@@ -60,7 +60,7 @@ function createEnvFile() {
 function modifyFpath() {
 	local envFile=/etc/zshenv owner='root:wheel'
 	[[ $(id -un) != "root" ]] && { envFile=$HOME/.zshenv owner=$((id -un)):staff }
-	createEnvFile $envFile $owner u=rw,g=r
+	createEnvFile $envFile $owner u+rw,g+r
 	cat $envFile 2> /dev/null | grep $libDir >&! /dev/null && return
 	print -- "fpath+=($libDir)" >> $envFile
 }
