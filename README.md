@@ -2,12 +2,19 @@
 Awesome functions that make writing Z shell CLI applications easier.
 
 ## Install
-To install this library system wide run:
+### Automated install
+To install this library for the current user run:
 
 ```zsh
 /bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/astzweig/zshlib/main/bootstrap.sh)"
 ```
 
+To install this library system wide run that as root.
+
+### Using release version
+You can also just download the latest release and put in in your `$fpath`.
+
+### Using in development
 To use this library in you own project add it as a [`git-submodule`][git-submodule]
 to your repository.
 
