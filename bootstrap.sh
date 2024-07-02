@@ -65,7 +65,7 @@ function moveDownloadToLibDir() {
 	mv ${zshlibTempPath} ${libDir}
 	zshlibPath=${libDir}/${zshlibTempPath:t}
 	chown $user ${zshlibPath}
-	chmod 'ugo=rx' ${zshlibPath}
+	chmod 'ugo=r' ${zshlibPath}
 }
 
 function installZSHLibWordCodeForRoot() {
