@@ -1,7 +1,7 @@
 Describe 'askUserModuleQuestions generateCacheKeysFromQuestionID'
-  Include ./askUserModuleQuestions
+  Include ./functions/askUserModuleQuestions
 
-  It 'does nothing if given no arguments' 
+  It 'does nothing if given no arguments'
     declare -A cachekeys=()
     When call _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID ''
     The output should eq ''
@@ -9,7 +9,7 @@ Describe 'askUserModuleQuestions generateCacheKeysFromQuestionID'
     The status should be success
   End
 
-  It 'does nothing if question id is empty' 
+  It 'does nothing if question id is empty'
     declare cachekeys=()
     When call _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID 'somemod' ''
     The output should eq ''
