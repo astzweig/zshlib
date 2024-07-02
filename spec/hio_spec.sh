@@ -55,7 +55,7 @@ End
 
 
 Describe '_zshlib_hio_getModifier'
-  Include ./hio
+  Include ./functions/hio
   modifier=
   setup() { modifier= }
   BeforeEach 'setup'
@@ -81,7 +81,7 @@ Describe '_zshlib_hio_getModifier'
 End
 
 Describe '_zshlib_hio_printPrefixSymbol'
-  Include ./hio
+  Include ./functions/hio
   It 'does nothing if no modifier given'
     modifier=
     When call _zshlib_hio_printPrefixSymbol
@@ -97,7 +97,7 @@ Describe '_zshlib_hio_printPrefixSymbol'
 End
 
 Describe '_zshlib_hio_printPrefixSymbol symbols'
-  Include ./hio
+  Include ./functions/hio
   declare -A modifierStyles=()
   Parameters
    li '· '
@@ -120,7 +120,7 @@ Describe '_zshlib_hio_printPrefixSymbol symbols'
 End
 
 Describe '_zshlib_hio_modifyStyle'
-  Include ./hio
+  Include ./functions/hio
   It 'does nothing if modifier is not set'
     style='bold'
     When call _zshlib_hio_modifyStyle

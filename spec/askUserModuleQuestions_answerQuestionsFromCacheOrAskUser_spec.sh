@@ -1,16 +1,16 @@
 Describe 'askUserModuleQuestions answerQuestionsFromCacheOrAskUser'
-  Include ./askUserModuleQuestions
+  Include ./functions/askUserModuleQuestions
   mod="testmod"
 
-  It 'does nothing if module has no questions' 
+  It 'does nothing if module has no questions'
     declare -A questions=()
-    When call _zshlib_askUserModuleQuestions_answerQuestionsFromCacheOrAskUser 
+    When call _zshlib_askUserModuleQuestions_answerQuestionsFromCacheOrAskUser
     The output should eq ''
     The variable 'questions' should eq ''
     The status should be success
   End
 
-  It 'asks the user if the question is not in the config' 
+  It 'asks the user if the question is not in the config'
     declare -A questions=([question-one]=$'What is your favorite color?\ninfo')
     Data 'blue'
     When call _zshlib_askUserModuleQuestions_answerQuestionsFromCacheOrAskUser
@@ -18,7 +18,7 @@ Describe 'askUserModuleQuestions answerQuestionsFromCacheOrAskUser'
     The status should be success
   End
 
-  It 'does not ask the user if the question is stored in the config' 
+  It 'does not ask the user if the question is stored in the config'
     declare -A questions=([question-one]=$'What is your favorite color?\ninfo')
     config() { [ "${1}" = read ] && echo red; }
     cache=config

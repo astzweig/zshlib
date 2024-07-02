@@ -1,5 +1,5 @@
 Describe 'askUserModuleQuestions findQuestionArgInInstruction'
-  Include ./askUserModuleQuestions
+  Include ./functions/askUserModuleQuestions
   instructions=('somearg:somevalue' 'default:one' 'colonarg:value with : colons' 'choose from:blue,light green,red')
 
   It 'finds nothing if no arg name given'
@@ -41,7 +41,7 @@ Describe 'askUserModuleQuestions findQuestionArgInInstruction'
   It 'handles colons in arg value'
     argValue=''
     When call _zshlib_askUserModuleQuestions_findQuestionArgInInstruction 'colonarg'
-    The variable argValue should eq 'value with : colons' 
+    The variable argValue should eq 'value with : colons'
     The status should be success
   End
 End

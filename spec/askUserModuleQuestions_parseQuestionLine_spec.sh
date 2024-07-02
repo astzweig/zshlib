@@ -1,28 +1,28 @@
 Describe 'askUserModuleQuestions parseQuestionLine'
-  Include ./askUserModuleQuestions
+  Include ./functions/askUserModuleQuestions
 
-  It 'does nothing if the line is empty' 
+  It 'does nothing if the line is empty'
     line=''
     When call _zshlib_askUserModuleQuestions_parseQuestionLine
     The output should eq ''
     The status should be success
   End
 
-  It 'does nothing if the line does not have a question type' 
+  It 'does nothing if the line does not have a question type'
     line='some value here'
     When call _zshlib_askUserModuleQuestions_parseQuestionLine
     The output should eq ''
     The status should eq 10
   End
 
-  It 'does nothing if the line does not have a valid question type' 
+  It 'does nothing if the line does not have a valid question type'
     line='z: some value here'
     When call _zshlib_askUserModuleQuestions_parseQuestionLine
     The output should eq ''
     The status should eq 11
   End
 
-  It 'does nothing if the line does not have a parameter name' 
+  It 'does nothing if the line does not have a parameter name'
     line='i: '
     When call _zshlib_askUserModuleQuestions_parseQuestionLine
     The output should eq ''
@@ -36,7 +36,7 @@ Describe 'askUserModuleQuestions parseQuestionLine'
     The status should eq 13
   End
 
-  It 'does nothing if the line does not have a question' 
+  It 'does nothing if the line does not have a question'
     line='i: parameter-name='
     When call _zshlib_askUserModuleQuestions_parseQuestionLine
     The output should eq ''
@@ -100,7 +100,7 @@ Describe 'askUserModuleQuestions parseQuestionLine'
 End
 
 Describe "askUserModuleQuestions parseQuestionLine type renaming"
-  Include ./askUserModuleQuestions
+  Include ./functions/askUserModuleQuestions
   Parameters
     i info
     p password
