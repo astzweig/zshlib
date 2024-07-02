@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Nothing here yet.
 
+## [v2.0.2] - 2024-07-03
+### Added
+- As ZSh word code files are OS independent but ZSh version dependent, the build
+  process and bootstrap script take that into account.
+  If there is no precompiled version for your ZSh version, bootstrap will compile
+  from source.
+
 ## [v2.0.1] - 2024-07-01
 ### Added
 - Add bootstrap script. Now you can automatically install the library using a
