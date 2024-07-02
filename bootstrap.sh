@@ -40,7 +40,7 @@ function getZSHLibArchive() {
 
 function compileZSHLib() {
 	printOrLog 'Compile zshlib to zsh word code.'
-	zcompile -z -U ${zshlibTempPath} $(find ./zshlib-main -type f -perm +u=x -maxdepth 1)
+	zcompile -z -U ${zshlibTempPath} $(find ./zshlib-main/functions -type f -perm +u=x -maxdepth 1)
 	printOrLog 'Done.'
 }
 
