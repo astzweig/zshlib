@@ -102,8 +102,8 @@ function _zshlib_askUserModuleQuestions_generateCacheKeysFromQuestionID() {
 	setopt localoptions extendedglob
 	[ $# -lt 2 -o -z "$1" -o -z "$2" ] && return
 	local modName="${1}" questID="${2}"
-	modName="${${${${modName//-/_}/#_/}/%_/}//[^A-Za-z_]/}"
-	questID="${${${${questID//-/_}/#_/}/%_/}//[^A-Za-z_]/}"
+	modName="${${${${modName//-##/_}/#_/}/%_/}//[^A-Za-z_]/}"
+	questID="${${${${questID//-##/_}/#_/}/%_/}//[^A-Za-z_]/}"
 	cachekeys=("${modName}" questions "${questID}")
 }
 
