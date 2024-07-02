@@ -153,7 +153,7 @@ function configureTerminal() {
 
 function parseArgs() {
 	zmodload zsh/zutil
-	zparseopts -D -- {h,-help}=help_cmd -from-source=from_source_cmd
+	zparseopts -D -- {h,-help}=help_option -from-source=from_source_option
 }
 
 function printUsage() {
