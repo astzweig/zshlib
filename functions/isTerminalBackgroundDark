@@ -4,36 +4,36 @@
 declare -gx _ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS=
 
 function isTerminalBackgroundDark() {
-  test -t 0 || return 10
-  test -t 1 || return 11
-  if [ -z "${_ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS}" ]; then
-    local answer hexrgbstr hexrgb brightness weights onebyte hexvalue weight
-    traps add zshlib-isTerminalBackgroundDark-reset-stty "stty $(stty -g)"
-    trap "traps call exit; traps remove zshlib-isTerminalBackgroundDark-reset-stty" EXIT
-    stty raw -echo min 0
-    print -n "\033]11;?\033\\"
-    while true; do
-      read -rs -t 0.2 -k 1 -u 0 || break
-      answer+=$REPLY
-    done
-    [[ ${#answer} -eq 24 ]] || return 0
-    hexrgbstr=${answer:(-15):(-1)}
-    hexrgb=(${(s./.)hexrgbstr}) weights=(.241 .691 .068) onebyte=256
-    integer brightness=0
-    for hexvalue weight in ${hexrgb:^weights}; do
-      (( brightness+=0x$hexvalue / onebyte * weight ))
-    done
-    _ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS="${brightness}"
-  fi
-  (( _ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS <= 130 ))
+	test -t 0 || return 10
+	test -t 1 || return 11
+	if [ -z "${_ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS}" ]; then
+		local answer hexrgbstr hexrgb brightness weights onebyte hexvalue weight
+		traps add zshlib-isTerminalBackgroundDark-reset-stty "stty $(stty -g)"
+		trap "traps call exit; traps remove zshlib-isTerminalBackgroundDark-reset-stty" EXIT
+		stty raw -echo min 0
+		print -n "\033]11;?\033\\"
+		while true; do
+			read -rs -t 0.2 -k 1 -u 0 || break
+			answer+=$REPLY
+		done
+		[[ ${#answer} -eq 24 ]] || return 0
+		hexrgbstr=${answer:(-15):(-1)}
+		hexrgb=(${(s./.)hexrgbstr}) weights=(.241 .691 .068) onebyte=256
+		integer brightness=0
+		for hexvalue weight in ${hexrgb:^weights}; do
+			(( brightness+=0x$hexvalue / onebyte * weight ))
+		done
+		_ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS="${brightness}"
+	fi
+	(( _ZSHLIB_ISTERMINALBACKGROUNDDARK_BRIGHTNESS <= 130 ))
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  declare -A traps=()
-  _DIR="${0:A:h}"
-  whence traps >&! /dev/null || source "${_DIR}/traps"
-  trap 'code=$?; traps call; return $code' INT TERM EXIT
-  isTerminalBackgroundDark "$@"
+	declare -A traps=()
+	_DIR="${0:A:h}"
+	whence traps >&! /dev/null || source "${_DIR}/traps"
+	trap 'code=$?; traps call; return $code' INT TERM EXIT
+	isTerminalBackgroundDark "$@"
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
-  isTerminalBackgroundDark "$@"
+	isTerminalBackgroundDark "$@"
 fi

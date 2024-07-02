@@ -2,83 +2,83 @@
 # vi: set expandtab ft=zsh tw=80 ts=2
 
 function _zshlib_askUser_info() {
-  local passwordOption= firstReply=
-  [ "${password}" = true ] && passwordOption='-s'
-  [ -z "${defaulthint}" ] && prompt="${prompt} "
-  while true; do
-    while true; do
-      hio -n ${defaulthint} -- body:quest "${prompt}"
-      [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
-      read -u 0 ${passwordOption}
-      [[ -z "${passwordOption}" ]] && break
+	local passwordOption= firstReply=
+	[ "${password}" = true ] && passwordOption='-s'
+	[ -z "${defaulthint}" ] && prompt="${prompt} "
+	while true; do
+		while true; do
+			hio -n ${defaulthint} -- body:quest "${prompt}"
+			[[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
+			read -u 0 ${passwordOption}
+			[[ -z "${passwordOption}" ]] && break
 
-      firstReply=$REPLY REPLY=
-      printf '\n'
-      hio -n -- body:expl "${prompt}"
-      read -u 0 ${passwordOption}
-      printf '\n'
-      [[ ${firstReply} = ${REPLY} ]] && break
-    done
-    [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
-    [ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
-    if [ -n "${REPLY}" ]; then
-      [ -z "${validator}" ] || ${(s.,.)validator} ${REPLY} && break
-    fi
-  done
+			firstReply=$REPLY REPLY=
+			printf '\n'
+			hio -n -- body:expl "${prompt}"
+			read -u 0 ${passwordOption}
+			printf '\n'
+			[[ ${firstReply} = ${REPLY} ]] && break
+		done
+		[ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
+		[ -z "${REPLY}" -a -n "${default}" ] && REPLY="${default}"
+		if [ -n "${REPLY}" ]; then
+			[ -z "${validator}" ] || ${(s.,.)validator} ${REPLY} && break
+		fi
+	done
 }
 
 function _zshlib_askUser_confirm() {
-  local answerChoices=()
-  [ "${y}" = true ] && answerChoices+=(Y) || answerChoices+=(y)
-  [ "${n}" = true ] && answerChoices+=(N) || answerChoices+=(n)
-  while true; do
-    hio -n -a "[${(j./.)answerChoices}] " -- body:quest "${prompt}"
-    [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
-    read -u 0 -k
-    [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
-    REPLY="${REPLY//[^A-Za-z]/}"
-    if [ -n "${REPLY}" ]; then
-      [[ "${REPLY}" =~ [Yy] ]] && return
-      [[ "${REPLY}" =~ [Nn] ]] && return 1
-      hio -- body:error 'Unrecognized input. Please confirm with y or n.' >&2
-    elif [ "${y}" = true ]; then
-      return
-    elif [ "${n}" = true ]; then
-      return 1
-    else
-      hio -- body:error 'No input made. Please confirm with y or n.' >&2
-    fi
-  done
+	local answerChoices=()
+	[ "${y}" = true ] && answerChoices+=(Y) || answerChoices+=(y)
+	[ "${n}" = true ] && answerChoices+=(N) || answerChoices+=(n)
+	while true; do
+		hio -n -a "[${(j./.)answerChoices}] " -- body:quest "${prompt}"
+		[[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
+		read -u 0 -k
+		[ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
+		REPLY="${REPLY//[^A-Za-z]/}"
+		if [ -n "${REPLY}" ]; then
+			[[ "${REPLY}" =~ [Yy] ]] && return
+			[[ "${REPLY}" =~ [Nn] ]] && return 1
+			hio -- body:error 'Unrecognized input. Please confirm with y or n.' >&2
+		elif [ "${y}" = true ]; then
+			return
+		elif [ "${n}" = true ]; then
+			return 1
+		else
+			hio -- body:error 'No input made. Please confirm with y or n.' >&2
+		fi
+	done
 }
 
 function _zshlib_askUser_choose() {
-  local choice=
-  if [[ "${(t)choices}" != array* ]]; then
-    hio body:error 'choices must be an array defined outside.' >&2
-    return 64
-  fi
-  [ "${#choices}" -lt 1 ] && return
-  [ -z "${defaulthint}" ] && prompt="${prompt} "
-  hio ${defaulthint} -- body:quest "${prompt}"
-  [[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
-  select choice in "${choices[@]}"; do
-    if [ -n "${choice}" ]; then
-      REPLY="${choice}"
-      break
-    fi
-    [ -n "${validator}" ] && ${(s.,.)validator} ${REPLY} && break
-  done < /dev/stdin
-  [ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
-  return 0
+	local choice=
+	if [[ "${(t)choices}" != array* ]]; then
+		hio body:error 'choices must be an array defined outside.' >&2
+		return 64
+	fi
+	[ "${#choices}" -lt 1 ] && return
+	[ -z "${defaulthint}" ] && prompt="${prompt} "
+	hio ${defaulthint} -- body:quest "${prompt}"
+	[[ -t 0 ]] && stty echo; [[ -t 1 ]] && tput cnorm
+	select choice in "${choices[@]}"; do
+		if [ -n "${choice}" ]; then
+			REPLY="${choice}"
+			break
+		fi
+		[ -n "${validator}" ] && ${(s.,.)validator} ${REPLY} && break
+	done < /dev/stdin
+	[ -t 0 -a -t 1 -a -n "${TERMINAL_CURSOR_HIDDEN}" ] && tput civis
+	return 0
 }
 
 function askUser() {
-  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 info [-v VALIDATOR] [-d DEFAULT] [-p] <prompt>
 	  $0 confirm [-y|-n] <prompt>
 	  $0 choose [-v VALIDATOR] <prompt>
-	
+
 	Ask user for input showing the given <prompt>. The input type can be modified
 	using the options. All input is stored in \$REPLY for scalars and \$reply for
 	arrays. If stdin is connected to a terminal, this command turns echo mode on
@@ -86,61 +86,61 @@ function askUser() {
 	If both stdin and stdout are connected to a terminal, this command also shows
 	the cursor while the user is asked for input and hides it again afterwards if
 	the environment variable TERMINAL_CURSOR_HIDDEN is set and has a value.
-	
+
 	Commands:
-	  info     Ask the user a question with an undefined range of answers. If a
-	           default value is given, use that if no input is made. If a
-	           validator is given, ask again if the value does not pass
-	           validation.
-	  confirm  Ask the user a yes/no question and return 0 if the input was y or
-	           Y. If no input is given, ask again. If the y option is given, yes
-	           will be the default value if no input is made, the same is true
-	           for the n option, where no is the default value if no input is
-	           made.
-	  choose   Let the user choose from a list of possible choices (given by an
-	           outer array named 'choices'). If validator is given other input
-	           but empty input will be accepted too if they pass validation.
-	
+	  info    Ask the user a question with an undefined range of answers. If a
+	          default value is given, use that if no input is made. If a
+	          validator is given, ask again if the value does not pass
+	          validation.
+	  confirm	Ask the user a yes/no question and return 0 if the input was y or
+	          Y. If no input is given, ask again. If the y option is given, yes
+	          will be the default value if no input is made, the same is true
+	          for the n option, where no is the default value if no input is
+	          made.
+	  choose  Let the user choose from a list of possible choices (given by an
+	          outer array named 'choices'). If validator is given other input
+	          but empty input will be accepted too if they pass validation.
+
 	Options:
-	  -d DEFAULT, --default DEFAULT        A default value
-	  -p, --password                       Do not repeat/print input on stdout.
-	  -v VALIDATOR, --validator VALIDATOR  The name of a function or command to
-	                                       use as an input validator. It receives
-	                                       the user input as the first argument
-	                                       and shall return 0 if the validation
-	                                       passes or any number greater than zero
-	                                       if the validation failed.
-	  -y                                   Set yes as default value.
-	  -n                                   Set no as default value.
+	  -d DEFAULT, --default DEFAULT       A default value
+	  -p, --password                      Do not repeat/print input on stdout.
+	  -v VALIDATOR, --validator VALIDATOR The name of a function or command to
+	                                      use as an input validator. It receives
+	                                      the user input as the first argument
+	                                      and shall return 0 if the validation
+	                                      passes or any number greater than zero
+	                                      if the validation failed.
+	  -y                                  Set yes as default value.
+	  -n                                  Set no as default value.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  REPLY=
-  local defaulthint=
-  [ -n "${default}" ] && defaulthint=(-a "[default: ${default}] ")
-  if [[ -t 0 ]]; then
-    traps add zshlib-askUser-reset-stty "stty $(stty -g)"
-    trap "traps call exit; traps remove zshlib-askUser-reset-stty" EXIT
-  fi
-  if [ "${info}" = true ]; then
-    _zshlib_askUser_info
-  elif [ "${confirm}" = true ]; then
-    _zshlib_askUser_confirm
-  elif [ "${choose}" = true ]; then
-    _zshlib_askUser_choose
-  fi
+	REPLY=
+	local defaulthint=
+	[ -n "${default}" ] && defaulthint=(-a "[default: ${default}] ")
+	if [[ -t 0 ]]; then
+		traps add zshlib-askUser-reset-stty "stty $(stty -g)"
+		trap "traps call exit; traps remove zshlib-askUser-reset-stty" EXIT
+	fi
+	if [ "${info}" = true ]; then
+		_zshlib_askUser_info
+	elif [ "${confirm}" = true ]; then
+		_zshlib_askUser_confirm
+	elif [ "${choose}" = true ]; then
+		_zshlib_askUser_choose
+	fi
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  declare -A traps=()
-  _DIR="${0:A:h}"
-  for c in hio pf traps isTerminalBackgroundDark; do
-    whence $c >&! /dev/null || source "${_DIR}/$c"
-  done
-  trap 'code=$?; traps call; return $code' INT TERM EXIT
-  askUser "$@"
+	declare -A traps=()
+	_DIR="${0:A:h}"
+	for c in hio pf traps isTerminalBackgroundDark; do
+		whence $c >&! /dev/null || source "${_DIR}/$c"
+	done
+	trap 'code=$?; traps call; return $code' INT TERM EXIT
+	askUser "$@"
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
-  askUser "$@"
+	askUser "$@"
 fi
