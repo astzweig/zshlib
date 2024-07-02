@@ -2,57 +2,58 @@
 # vi: set expandtab ft=zsh tw=80 ts=2
 
 function indicateActivity() {
-  eval "`docopts -f -V - -h - : "$@" <<- USAGE
-	Usage: $0 [options] [--] <msg> <func>... 
-	
+	eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	Usage: $0 [options] [--] <msg> <func>...
+
 	Show a spinner during run of <func> if the output is connected to a terminal
 	else print three dots and done or failed afterwards. Print <msg> using lop
 	with info level. Any func argument but the first will be passed as an argument
 	to that first func.
-	
+
 	Options:
-	  -a STYLE, --active STYLE   hio message type during run of FUNC. [default: body:active]
-	  -s STYLE, --success STYLE  hio message type if FUNC succeeds. [default: body:done]
-	  -f STYLE, --failure STYLE  hio message type if FUNC fails. [default: body:failure]
-	
+	  -a STYLE, --active STYLE    hio message type during run of FUNC
+	                              [default: body:active].
+	  -s STYLE, --success STYLE   hio message type if FUNC succeeds. [default: body:done]
+	  -f STYLE, --failure STYLE   hio message type if FUNC fails. [default: body:failure]
+
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  local msgArgs result resultStyle resultMsg funcOutput output newlineArg
-  test -z ${msg} && return 10
+	local msgArgs result resultStyle resultMsg funcOutput output newlineArg
+	test -z ${msg} && return 10
 
-  msgArgs=(${${:--i}:^^msg})
-  output="`lop getoutput -- ${msgArgs}`"
-  [ -t 1 -a "$output" = stdout ] && { newlineArg=-n }
+	msgArgs=(${${:--i}:^^msg})
+	output="`lop getoutput -- ${msgArgs}`"
+	[ -t 1 -a "$output" = stdout ] && { newlineArg=-n }
 
-  lop ${newlineArg} -y ${active} -- ${msgArgs}
-  result=$?
+	lop ${newlineArg} -y ${active} -- ${msgArgs}
+	result=$?
 
-  if test -t 1 && [[ $output = stdout && $result -eq 0 ]]; then
-    showSpinner --output funcOutput -- ${func}
-    result=$?
-    [[ $result -eq 0 ]] && resultStyle=${success} || resultStyle=${failure}
-    tput cr; tput el;
-    lop -y ${resultStyle} -- ${msgArgs}
+	if test -t 1 && [[ $output = stdout && $result -eq 0 ]]; then
+		showSpinner --output funcOutput -- ${func}
+		result=$?
+		[[ $result -eq 0 ]] && resultStyle=${success} || resultStyle=${failure}
+		tput cr; tput el;
+		lop -y ${resultStyle} -- ${msgArgs}
 
-    if [[ -n ${funcOutput} ]]; then
-      lop -- -d "Function output during run: ${funcOutput}"
-    fi
-  else
-    ${func}
-    result=$?
-  fi
+		if [[ -n ${funcOutput} ]]; then
+			lop -- -d "Function output during run: ${funcOutput}"
+		fi
+	else
+		${func}
+		result=$?
+	fi
 
-  return $result
+	return $result
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  print "$0: This command has no functionality if called by its own. Either source it or autoload it." >&2
-  indicateActivity --help
-  exit 64
+	print "$0: This command has no functionality if called by its own. Either source it or autoload it." >&2
+	indicateActivity --help
+	exit 64
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
-  indicateActivity "$@"
+	indicateActivity "$@"
 fi
 

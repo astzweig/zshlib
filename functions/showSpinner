@@ -2,38 +2,38 @@
 # vi: set expandtab ft=zsh tw=80 ts=2
 
 function _zshlib_showSpinner_spin() {
-  local stop=false
-  local i=0 j=0 k=0 pos=0 spinlen=0 dursplit=0
+	local stop=false
+	local i=0 j=0 k=0 pos=0 spinlen=0 dursplit=0
 
-  let "spinlen = ${#spinner} / width"
-  let "dursplit = ${duration} / 0.1"
-  trap 'stop=true' TERM
-  while true; do
-    for (( i=0; i < $spinlen; i++ )); do
-      let "pos = i * width"
-      print -n -- ${spinner:$pos:$width}
-      tput cub $width
-      for (( k=0; k <= $dursplit; k++ )); do
-        [ $stop = true ] && break 3
-        sleep 0.1
-      done
-    done
-  done
-  tput el
+	let "spinlen = ${#spinner} / width"
+	let "dursplit = ${duration} / 0.1"
+	trap 'stop=true' TERM
+	while true; do
+		for (( i=0; i < $spinlen; i++ )); do
+			let "pos = i * width"
+			print -n -- ${spinner:$pos:$width}
+			tput cub $width
+			for (( k=0; k <= $dursplit; k++ )); do
+				[ $stop = true ] && break 3
+				sleep 0.1
+			done
+		done
+	done
+	tput el
 }
 
 function showSpinner() {
-  setopt localoptions nomonitor
-  local duration_default=0.2 width_default=3 spinner_default='.  .. ...   '
-  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	setopt localoptions nomonitor
+	local duration_default=0.2 width_default=3 spinner_default='.  .. ...   '
+	eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [--] <func>...
-	
+
 	Show a spinner at the current cursor position, while func is running. Hides
 	the cursor while the spinner is running and shows it again afterwards if the
 	environment variable TERMINAL_CURSOR_HIDDEN is not set or has no value.
 	Any func argument but the first will be passed as an argument to that first
 	func.
-	
+
 	Options:
 	  -o VARNAME, --output VARNAME  Store the output of <func> to variable VARNAME.
 	  -d TIME, --duration TIME      The duration that each spinner sequence shall
@@ -48,42 +48,42 @@ function showSpinner() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  local result=0
-  if test -t 1; then
-    (( duration >= 0.1 )) || return 10
-    (( width >= 1 )) || return 11
-    traps add zshlib-showSpinner-reset-cursor 'test -z "${TERMINAL_CURSOR_HIDDEN}" && tput cnorm'
-    tput civis;
-    _zshlib_showSpinner_spin &
-    local jobId=$!
-    traps add zshlib-showSpinner-kill-job "test -t 1 && kill -s TERM $jobId >&! /dev/null && wait $jobId"
-  fi
+	local result=0
+	if test -t 1; then
+		(( duration >= 0.1 )) || return 10
+		(( width >= 1 )) || return 11
+		traps add zshlib-showSpinner-reset-cursor 'test -z "${TERMINAL_CURSOR_HIDDEN}" && tput cnorm'
+		tput civis;
+		_zshlib_showSpinner_spin &
+		local jobId=$!
+		traps add zshlib-showSpinner-kill-job "test -t 1 && kill -s TERM $jobId >&! /dev/null && wait $jobId"
+	fi
 
-  if test -t 0; then
-    traps add zshlib-showSpinner-reset-stty "stty $(stty -g)"
-    stty -echo
-  fi
-  trap 'traps call exit; traps remove zshlib-showSpinner-reset-cursor; traps remove zshlib-showSpinner-reset-stty; traps remove zshlib-showSpinner-kill-job' EXIT
+	if test -t 0; then
+		traps add zshlib-showSpinner-reset-stty "stty $(stty -g)"
+		stty -echo
+	fi
+	trap 'traps call exit; traps remove zshlib-showSpinner-reset-cursor; traps remove zshlib-showSpinner-reset-stty; traps remove zshlib-showSpinner-kill-job' EXIT
 
-  if [[ -n $output ]]; then 
-    coproc cat
-    ${func} >&p 2>&1
-    result=$?
-    print -p
-    read -p ${output}
-    coproc exit
-  else
-    test -t 1 && ${func} >&! /dev/null || ${func}
-    result=$?
-  fi
+	if [[ -n $output ]]; then
+		coproc cat
+		${func} >&p 2>&1
+		result=$?
+		print -p
+		read -p ${output}
+		coproc exit
+	else
+		test -t 1 && ${func} >&! /dev/null || ${func}
+		result=$?
+	fi
 
-  return $result
+	return $result
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  print "$0: This command has no functionality if called by its own. Either source it or autoload it." >&2
-  showSpinner --help
-  exit 64
+	print "$0: This command has no functionality if called by its own. Either source it or autoload it." >&2
+	showSpinner --help
+	exit 64
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
-  showSpinner "$@"
+	showSpinner "$@"
 fi

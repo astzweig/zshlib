@@ -3,74 +3,74 @@
 declare -gA _ZSHLIB_CONFIG_OPTIONS
 
 function config() {
-  typeset -T KEYPATH key
-  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	typeset -T KEYPATH key
+	eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setappname <appdomain>
 	  $0 setconfigfile <filepath>
 	  $0 [options] write <value> <key> [<key>...]
 	  $0 [options] read <key> [<key>...]
-	
+
 	Write and read config values from and to a configuration file. setappname
 	derives the path to the configuration file for all subsequent read and write
 	calls. appdomain shall be in reverse DNS form. write writes the string value
 	to the keypath given by key.
-	
+
 	Options:
-	  -a APPNAME, --appname=APPNAME  Derive path to configuration file from
-	                                 APPNAME instead of <appname> set via
-	                                 setappname.
-	  -c PATH, --configfile=PATH     Use PATH as path to configuration file
-	                                 instead of deriving a path.
+	  -a APPNAME, --appname=APPNAME Derive path to configuration file from
+	                                APPNAME instead of <appname> set via
+	                                setappname.
+	  -c PATH, --configfile=PATH    Use PATH as path to configuration file
+	                                instead of deriving a path.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  if [ "${setappname}" = 'true' ]; then
-    _ZSHLIB_CONFIG_OPTIONS+=('-a' "${appdomain}")
-    return 0
-  fi
+	if [ "${setappname}" = 'true' ]; then
+		_ZSHLIB_CONFIG_OPTIONS+=('-a' "${appdomain}")
+		return 0
+	fi
 
-  if [ "${setconfigfile}" = 'true' ]; then
-    _ZSHLIB_CONFIG_OPTIONS+=('-c' "${filepath}")
-    return 0
-  fi
+	if [ "${setconfigfile}" = 'true' ]; then
+		_ZSHLIB_CONFIG_OPTIONS+=('-c' "${filepath}")
+		return 0
+	fi
 
-  local pbuddy=/usr/libexec/PlistBuddy
-  appname="${appname:-${_ZSHLIB_CONFIG_OPTIONS[-a]}}"
-  configfile="${configfile:-${_ZSHLIB_CONFIG_OPTIONS[-c]}}"
-  [ -z "${configfile}" -a -z "${appname}" ] && return 10
-  [[ -n ${configfile} ]] || configfile="`getPrefDir "${appname}"`/${appname}.plist"
+	local pbuddy=/usr/libexec/PlistBuddy
+	appname="${appname:-${_ZSHLIB_CONFIG_OPTIONS[-a]}}"
+	configfile="${configfile:-${_ZSHLIB_CONFIG_OPTIONS[-c]}}"
+	[ -z "${configfile}" -a -z "${appname}" ] && return 10
+	[[ -n ${configfile} ]] || configfile="`getPrefDir "${appname}"`/${appname}.plist"
 
-  if [ "${write}" = 'true' ]; then
-    local clearCmd=("${pbuddy}" -c 'Clear dict' "${configfile}")
-    [ ! -f "${configfile}" ] && ${clearCmd} > /dev/null
-    if ! ${pbuddy} -c 'Print' "${configfile}" >&! /dev/null; then
-      rm "${configfile}"
-      ${clearCmd} > /dev/null
-    fi
-    local item partialKeypath
-    for item in "${key[@]}"; do
-      partialKeypath="${partialKeypath}:${item}"
-      test "${item}" -eq "${item}" 2> /dev/null || continue
-      [ "${partialKeypath}" = ":${item}" ] && continue
-      ${pbuddy} -c "Add ${partialKeypath} array" "${configfile}"
-    done
-    ${pbuddy} -c "Add ${KEYPATH} string ${value}" "${configfile}"
-  fi
+	if [ "${write}" = 'true' ]; then
+		local clearCmd=("${pbuddy}" -c 'Clear dict' "${configfile}")
+		[ ! -f "${configfile}" ] && ${clearCmd} > /dev/null
+		if ! ${pbuddy} -c 'Print' "${configfile}" >&! /dev/null; then
+			rm "${configfile}"
+			${clearCmd} > /dev/null
+		fi
+		local item partialKeypath
+		for item in "${key[@]}"; do
+			partialKeypath="${partialKeypath}:${item}"
+			test "${item}" -eq "${item}" 2> /dev/null || continue
+			[ "${partialKeypath}" = ":${item}" ] && continue
+			${pbuddy} -c "Add ${partialKeypath} array" "${configfile}"
+		done
+		${pbuddy} -c "Add ${KEYPATH} string ${value}" "${configfile}"
+	fi
 
-  if [ "${read}" = 'true' ]; then
-    [ ! -s "${configfile}" ] && return 0
-    ${pbuddy} -c "Print" "${configfile}" 2> /dev/null 1>&2 || return 11
-    ${pbuddy} -c "Print ${KEYPATH}" "${configfile}" 2> /dev/null
-  fi
+	if [ "${read}" = 'true' ]; then
+		[ ! -s "${configfile}" ] && return 0
+		${pbuddy} -c "Print" "${configfile}" 2> /dev/null 1>&2 || return 11
+		${pbuddy} -c "Print ${KEYPATH}" "${configfile}" 2> /dev/null
+	fi
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  _DIR="${0:A:h}"
-  whence getPrefDir >&! /dev/null || source "${_DIR}/getPrefDir"
-  config "$@"
+	_DIR="${0:A:h}"
+	whence getPrefDir >&! /dev/null || source "${_DIR}/getPrefDir"
+	config "$@"
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
-  config "$@"
+	config "$@"
 fi

@@ -3,114 +3,114 @@
 declare -gA _ZSHLIB_LOP_OPTIONS
 
 function _zshlib_lop_filterMessagesByLoglevel() {
-  local level= delete= areAllMessagesFiltered=true
-  for level in ${loglevels}; do
-    [ "${loglevel}" = "${level}" ] && break
-    set -A ${level}
-  done
+	local level= delete= areAllMessagesFiltered=true
+	for level in ${loglevels}; do
+		[ "${loglevel}" = "${level}" ] && break
+		set -A ${level}
+	done
 
-  for level in ${loglevels}; do
-    [ "${delete}" = true ] && set -A ${level}
-    [ "${(P)#level}" -gt 0 ] && { areAllMessagesFiltered= delete=true }
-  done
-  [[ "${areAllMessagesFiltered}" = true ]] && return 1
-  return 0
+	for level in ${loglevels}; do
+		[ "${delete}" = true ] && set -A ${level}
+		[ "${(P)#level}" -gt 0 ] && { areAllMessagesFiltered= delete=true }
+	done
+	[[ "${areAllMessagesFiltered}" = true ]] && return 1
+	return 0
 }
 
 function _zshlib_lop_to_syslog() {
-  # Log a message to syslog
-  local taglineoption=()
-  [ -n "${tagline}" ] && taglineoption=('-t' "${tagline}")
+	# Log a message to syslog
+	local taglineoption=()
+	[ -n "${tagline}" ] && taglineoption=('-t' "${tagline}")
 
-  for level in ${loglevels}; do
-    [ "${(P)#level}" -gt 0 ] && logger ${taglineoption} -p "${level}" "${(P)level}"
-  done
+	for level in ${loglevels}; do
+		[ "${(P)#level}" -gt 0 ] && logger ${taglineoption} -p "${level}" "${(P)level}"
+	done
 }
 
 function _zshlib_lop_prefixTimeAndTag() {
-  # Print time and a tag inside brackets ('[]') and in that order. Time only if
-  # output is not to stdout and tag only if provided.
-  test -t 1 || local time=`date +%H:%M:%S`
-  [ -z "${tagline}" -a -z "${time}" ] && return
-  local args=()
-  for varname in time tagline; do
-    [ -n "${(P)varname}" ] && args+=(${(P)varname})
-  done
-  hio -n -- body:add "[${args}] "
+	# Print time and a tag inside brackets ('[]') and in that order. Time only if
+	# output is not to stdout and tag only if provided.
+	test -t 1 || local time=`date +%H:%M:%S`
+	[ -z "${tagline}" -a -z "${time}" ] && return
+	local args=()
+	for varname in time tagline; do
+		[ -n "${(P)varname}" ] && args+=(${(P)varname})
+	done
+	hio -n -- body:add "[${args}] "
 }
 
 function _zshlib_lop_setTypeArg() {
-  [ ${#msgTypes} -gt 0 ] && { typeArg=${msgTypes[1]}; shift msgTypes }
-  [ -z "${typeArg}" ] && typeArg=${defaultTypes[$level]}
+	[ ${#msgTypes} -gt 0 ] && { typeArg=${msgTypes[1]}; shift msgTypes }
+	[ -z "${typeArg}" ] && typeArg=${defaultTypes[$level]}
 }
 
 function _zshlib_lop_to_stdout() {
-  # Log a message to stdout
-  local -A defaultTypes=(debug body:add info body notice body:note warning body:warn error body:error critical body:error alert body:error panic body:error)
-  local typeArg= level= item= lastItem= tagarg= newlineArg=
-  [ "${no_newline}" = true ] && newlineArg=-n
-  for level in ${loglevels}; do
-    if (( outputId < 10 )); then
-      [[ ${tostderr[(ie)$level]} -le ${#tostderr} ]] && outputId=2 || outputId=1
-    fi
-    if [ ${(P)#level} -gt 0 ]; then
-      local msgTypes=("${type[@]}") prefixArg=
-      _zshlib_lop_prefixTimeAndTag >&${outputId}
-      for item in ${${(P)level}[1,-2]}; do
-        _zshlib_lop_setTypeArg
-        hio -n ${prefixArg} -- ${typeArg} "${item} " >&${outputId}
-        prefixArg=-p
-      done
-      _zshlib_lop_setTypeArg
-      hio ${newlineArg} ${prefixArg} -- ${typeArg} ${${(P)level}[-1]} >&${outputId}
-    fi
-  done
-  return 0
+	# Log a message to stdout
+	local -A defaultTypes=(debug body:add info body notice body:note warning body:warn error body:error critical body:error alert body:error panic body:error)
+	local typeArg= level= item= lastItem= tagarg= newlineArg=
+	[ "${no_newline}" = true ] && newlineArg=-n
+	for level in ${loglevels}; do
+		if (( outputId < 10 )); then
+			[[ ${tostderr[(ie)$level]} -le ${#tostderr} ]] && outputId=2 || outputId=1
+		fi
+		if [ ${(P)#level} -gt 0 ]; then
+			local msgTypes=("${type[@]}") prefixArg=
+			_zshlib_lop_prefixTimeAndTag >&${outputId}
+			for item in ${${(P)level}[1,-2]}; do
+				_zshlib_lop_setTypeArg
+				hio -n ${prefixArg} -- ${typeArg} "${item} " >&${outputId}
+				prefixArg=-p
+			done
+			_zshlib_lop_setTypeArg
+			hio ${newlineArg} ${prefixArg} -- ${typeArg} ${${(P)level}[-1]} >&${outputId}
+		fi
+	done
+	return 0
 }
 
 _zshlib_lop_preconfigureOutput() {
-  [ "${tostdout}" = 'true' ] && { unset '_ZSHLIB_LOP_OPTIONS[-f]'; unset '_ZSHLIB_LOP_OPTIONS[-s]' }
-  [ "${tosyslog}" = 'true' ] && _ZSHLIB_LOP_OPTIONS+=('-s' 'true')
-  [ -n "${filepath}" ] && _ZSHLIB_LOP_OPTIONS+=('-f' "${filepath}")
-  [ -n "${loglevel}" ] && _ZSHLIB_LOP_OPTIONS+=('-l' "${loglevel}")
+	[ "${tostdout}" = 'true' ] && { unset '_ZSHLIB_LOP_OPTIONS[-f]'; unset '_ZSHLIB_LOP_OPTIONS[-s]' }
+	[ "${tosyslog}" = 'true' ] && _ZSHLIB_LOP_OPTIONS+=('-s' 'true')
+	[ -n "${filepath}" ] && _ZSHLIB_LOP_OPTIONS+=('-f' "${filepath}")
+	[ -n "${loglevel}" ] && _ZSHLIB_LOP_OPTIONS+=('-l' "${loglevel}")
 }
 
 _zshlib_lop_printCurrentOutputConfiguration() {
-  local output=stdout
-  [ -n "${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}" ] && output="${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}"
-  [[ "${syslog}" = true || "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ]] && output=syslog
-  print -- "${output}"
+	local output=stdout
+	[ -n "${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}" ] && output="${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}"
+	[[ "${syslog}" = true || "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ]] && output=syslog
+	print -- "${output}"
 }
 
 function _zshlib_lop_pushMessagesToLevelArrays() {
-  local lvl= msg= varname=
-  for lvl msg in ${level:^^message}; do
-    lvl=${lvl//-}
-    varname=${loglevels[(r)${lvl}*]}
-    test -n "${varname}" || return
-    set -A ${varname} ${(P)varname} ${msg}
-  done
+	local lvl= msg= varname=
+	for lvl msg in ${level:^^message}; do
+		lvl=${lvl//-}
+		varname=${loglevels[(r)${lvl}*]}
+		test -n "${varname}" || return
+		set -A ${varname} ${(P)varname} ${msg}
+	done
 }
 
 function lop() {
-  local loglevelopts=() loglevels=(debug info notice warning error critical alert panic)
-  local tostderr=(${loglevels:4})
-  local -a ${loglevels}
-  printf -v loglevelopts '-%1$c/--%1$s' "${loglevels[@]}"
+	local loglevelopts=() loglevels=(debug info notice warning error critical alert panic)
+	local tostderr=(${loglevels:4})
+	local -a ${loglevels}
+	printf -v loglevelopts '-%1$c/--%1$s' "${loglevels[@]}"
 
-  eval "`docopts -f -V - -h - : "$@" <<- USAGE
+	eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage:
 	  $0 setoutput [options] (tostdout|tosyslog|<filepath>)
 	  $0 getoutput [options] [-- (<level> <message>)...]
 	  $0 [options] [-y TYPE...] -- (<level> <message>)...
-	
+
 	In the first form preconfigure the output for all subsequent calls. In the
 	second form prints stdout, syslog or the filepath if preconfigured.
 	In the third form output the message with the lowest priority (level) of all
 	given messages that is not filtered by loglevel option. Default output is to
 	stdout using hio. Level may be any of:
 	$(fold -w 80 -s <<<${(j., .)loglevelopts}).
-	
+
 	Options:
 	  -t TAG, --tagline TAG       Prefix output with the given tag.
 	  -y TYPE, --type TYPE        Message type if printed to stdout using hio. Default is
@@ -126,32 +126,32 @@ function lop() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  [ $# -eq 0 ] && return
-  [ "${setoutput}" = true ] && { _zshlib_lop_preconfigureOutput; return 0 }
-  [ "${getoutput}" = true ] && { _zshlib_lop_printCurrentOutputConfiguration; return }
-  _zshlib_lop_pushMessagesToLevelArrays || return 10
+	[ $# -eq 0 ] && return
+	[ "${setoutput}" = true ] && { _zshlib_lop_preconfigureOutput; return 0 }
+	[ "${getoutput}" = true ] && { _zshlib_lop_printCurrentOutputConfiguration; return }
+	_zshlib_lop_pushMessagesToLevelArrays || return 10
 
-  loglevel="${loglevel:-${_ZSHLIB_LOP_OPTIONS[-l]}}"
-  [ -z "${loglevel}" ] && loglevel=debug
-  _zshlib_lop_filterMessagesByLoglevel || return
-  if [ "${syslog}" = true -o "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ]; then
-    _zshlib_lop_to_syslog
-  else
-    integer outputId=1
-    if [[ -n ${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}} ]]; then
-      exec {outputId}>${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}
-    fi
-    _zshlib_lop_to_stdout
-  fi
-  return 0
+	loglevel="${loglevel:-${_ZSHLIB_LOP_OPTIONS[-l]}}"
+	[ -z "${loglevel}" ] && loglevel=debug
+	_zshlib_lop_filterMessagesByLoglevel || return
+	if [ "${syslog}" = true -o "${_ZSHLIB_LOP_OPTIONS[-s]}" = true ]; then
+		_zshlib_lop_to_syslog
+	else
+		integer outputId=1
+		if [[ -n ${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}} ]]; then
+			exec {outputId}>${filename:-${_ZSHLIB_LOP_OPTIONS[-f]}}
+		fi
+		_zshlib_lop_to_stdout
+	fi
+	return 0
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  _DIR="${0:A:h}"
-  for c in hio pf traps isTerminalBackgroundDark; do
-    whence $c >&! /dev/null || source "${_DIR}/$c"
-  done
-  lop "$@"
+	_DIR="${0:A:h}"
+	for c in hio pf traps isTerminalBackgroundDark; do
+		whence $c >&! /dev/null || source "${_DIR}/$c"
+	done
+	lop "$@"
 elif [[ "${ZSH_EVAL_CONTEXT}" == *loadautofunc ]]; then
-  lop "$@"
+	lop "$@"
 fi
