@@ -16,7 +16,12 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Compile library with zcompile
         shell: zsh {0}
-        run: zcompile -zU ./zshlib $(find . -type f -perm +u=x -maxdepth 1)
+        run: zcompile -zU ./zshlib $(find ./functions -type f -perm +u=x -maxdepth 1)
+
+      - name: Get zsh version
+        shell: zsh {0}
+        run: echo zsh-version=$ZSH_VERSION >> $GITHUB_OUTPUT
+        id: zsh-version
 
       - name: Create Release Notes
         shell: zsh {0}
@@ -40,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} 
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./zshlib.zwc
-          asset_name: zshlib.zwc
+          asset_name: zshlib${{ steps.zsh-version.outputs.zsh-version }}.zwc
           asset_content_type: application/octet-stream

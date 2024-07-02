@@ -51,7 +51,8 @@ function buildZSHLibWordCodeFromSource() {
 
 function downloadZSHLibWordCodeFromGithub() {
 	local apiURL=${ZSHLIB_RELEASE_API_URL:-https://api.github.com/repos/astzweig/zshlib/releases/latest}
-	local zwcURL=`curl -s $apiURL |  python3 -c 'import json,sys;print(json.load(sys.stdin)["assets"][0]["browser_download_url"])' 2> /dev/null`
+	local zwcURL=$(curl -s $apiURL |  python3 -c "import json, sys;zsh_version='${ZSH_VERSION}'; result=[asset['browser_download_url'] for asset in json.load(sys.stdin)['assets'] if asset['name'] == f'zshlib-{zsh_version}.zwc']; print(result[0]) if len(result) > 0 else exit(5)" 2> /dev/null)
+	[[ $? -eq 0 ]] || return 10
 	printOrLog 'Downloading latest zshlib word code from astzweig/zshlib on GitHub: '"$zwcURL"
 	curl --output ${zshlibTempPath} -fsSL "${zwcURL}" || return 10
 	printOrLog 'Done.'
@@ -199,7 +200,7 @@ function switchInstallationVariantByUser() {
 function installZSHLib() {
 	local libDir zshlibPath= zshlibTempPath=${tmpdir}/zshlib.zwc
 	if [[ -z $from_source_option ]]; then
-		downloadZSHLibWordCodeFromGithub
+		downloadZSHLibWordCodeFromGithub || buildZSHLibWordCodeFromSource
 	else
 		buildZSHLibWordCodeFromSource
 	fi
