@@ -120,7 +120,7 @@ function extendPathInEnvFile() {
 }
 
 function modifyFpathForRoot() {
-	local envFile=/etc/zshenv owner=root permission='ugo=r'
+	local envFile=/etc/zshenv owner=root permission='u=rw,go=r'
 	extendPathInEnvFile
 }
 
